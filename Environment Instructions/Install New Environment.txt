@@ -1,0 +1,21 @@
+Steps w/ Anaconda: 
+
+conda create --name iSNAP
+conda activate iSNAP
+
+
+conda install -c conda-forge numpy=1.26.4
+conda install pytorch::pytorch==2.2.2
+conda install conda-forge::scanpy
+conda install -c conda-forge leidenalg
+conda install bioconda::harmonypy
+conda install bioconda::scrublet
+conda install conda-forge::python-annoy
+conda install conda-forge::pyqt
+conda install conda-forge::qt-material
+conda install conda-forge::adjusttext
+
+
+conda install pip
+
+pip3 install bbknn==1.6.0
