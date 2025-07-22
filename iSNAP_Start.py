@@ -1404,9 +1404,9 @@ class MainWorker(QObject):
 
                 self.adatasSub = deg(self.adatasSub.copy(), self.paramDict['DEGMethodSub'])
 
-                degtoCSV(self.adatasSub.copy(), self.paramDict['output_path'], self.paramDict['DEGMethodSub'])
-
                 suffix = self.paramDict['chosenType']
+
+                degtoCSV(self.adatasSub.copy(), self.paramDict['output_path'], self.paramDict['DEGMethodSub'], suffix=suffix)
 
                 # Set up Dot Plot
                 dendrogram(self.adatasSub, groupby='leiden', n_pcs=self.paramDict['NPCSub'])
@@ -1444,7 +1444,7 @@ class MainWorker(QObject):
                     ]
                     lines = [
                         f'Page 11: Leiden Parameters ({self.paramDict["chosenType"]})\n',
-                        f'Test Resolution = {self.paramDict['resListSub'][0]}\n',
+                        f'Test Resolution = {self.paramDict['resListSub'][0]}\n\n',
                     ]
                 else:
                     self.leidenListSub = [
@@ -1478,7 +1478,7 @@ class MainWorker(QObject):
                     figUMAPList.append(pltumap(adatasLeiden, show=False, color="leiden", frameon = False, palette=default_102, title=f'Resolution {self.paramDict['resListSub'][i]}, {suffix}', size=size, return_fig=True))
                     figUMAPList[i].set_constrained_layout(True)
 
-                    figUMAPList[i].savefig(join(outpath, f'Leiden Resolution {self.paramDict["resListSub"]}.png'))
+                    figUMAPList[i].savefig(join(outpath, f'Leiden Resolution {self.paramDict["resListSub"][i]}.png'))
                 
                 inputSetPage['figListLeiden'] = figUMAPList
                 inputSetPage['resListLeiden'] = self.paramDict['resListSub']
@@ -1704,7 +1704,7 @@ class MainWorker(QObject):
                     ]
                     lines = [
                         'Page 5: Leiden Parameters\n',
-                        f'Test Resolution = {self.paramDict['resList'][0]}\n',
+                        f'Test Resolution = {self.paramDict['resList'][0]}\n\n',
                     ]
                 else:
                     self.leidenList = [
@@ -1739,7 +1739,7 @@ class MainWorker(QObject):
                     figUMAPList.append(pltumap(adatasLeiden, show=False, color="leiden", frameon = False, palette=default_102, title=f'Resolution {self.paramDict['resList'][i]}, {suffix}', return_fig=True))
                     figUMAPList[i].set_constrained_layout(True)
 
-                    figUMAPList[i].savefig(join(outpath, f'Leiden Resolution {self.paramDict["resList"]}.png'))
+                    figUMAPList[i].savefig(join(outpath, f'Leiden Resolution {self.paramDict["resList"][i]}.png'))
                 
                 inputSetPage['figListLeiden'] = figUMAPList
                 inputSetPage['resListLeiden'] = self.paramDict['resList']
