@@ -439,7 +439,21 @@ class DGEWindow(QWidget):
                 self.checksGroupA[index].setEnabled(False)
             else:
                 self.checksGroupA[index].setEnabled(True)
+
+# Custom Button for DGE window
+class EntangledCheckBox(QCheckBox):
+    entangledSignal = pyqtSignal(int, bool, bool)
     
+    def __init__(self, text, index, isA):
+        super().__init__()
+
+        self.setText(text)
+        self.index = index
+        self.isA = isA
+        
+    def entangleFunc(self):
+        self.entangledSignal.emit(self.index, self.isChecked(), self.isA)
+
 
 class VolcanoPlot(QWidget):
     def __init__(self, figVol):
@@ -462,19 +476,29 @@ class VolcanoPlot(QWidget):
         self.show()
 
         print('Done!')
-        
 
-class EntangledCheckBox(QCheckBox):
-    entangledSignal = pyqtSignal(int, bool, bool)
-    
-    def __init__(self, text, index, isA):
+
+class FinishedWidget(QWidget):
+    def __init__(self):
         super().__init__()
-
-        self.setText(text)
-        self.index = index
-        self.isA = isA
         
-    def entangleFunc(self):
-        self.entangledSignal.emit(self.index, self.isChecked(), self.isA)
+        self.layoutMain = QVBoxLayout()
 
-            
+        vspacer = QSpacerItem(1, 1, QSizePolicy.Minimum, QSizePolicy.Expanding)
+
+        labelThanks = QLabel('Thank you for using iSNAP!')
+        labelThanks.setStyleSheet('font-size: 24px;')
+
+        labelFeedback = QLabel('Please contact Alex Hunter or other Gao Lab bioinformatics team members for any suggestions. Feedback is much appreciated!')
+        labelCredits = QLabel('iSNAP created by Alex Hunter from Gao Lab at UTSW Simmons Comprehensive Cancer Center.')
+        labelSpecialThanks = QLabel('Special Thanks to Dr. Jinming Gao, Dr. Qiang Feng, William Hartnett, Jun Chen, and the rest of Gao Lab.')
+
+        self.layoutMain.addItem(vspacer)
+        self.layoutMain.addWidget(labelThanks)
+        self.layoutMain.addWidget(labelFeedback)
+        self.layoutMain.addItem(vspacer)
+        self.layoutMain.addWidget(labelCredits)
+        self.layoutMain.addWidget(labelSpecialThanks)
+        self.layoutMain.addItem(vspacer)
+
+        self.setLayout(self.layoutMain)

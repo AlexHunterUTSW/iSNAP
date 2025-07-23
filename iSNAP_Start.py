@@ -78,7 +78,19 @@ from iSNAP_Input import SetModality, FileFinder
 print('\nImporting Reading Packages')
 from iSNAP_Read import read_data, err_NoFiles, ReadQC, save_adatas
 print('\nImporting Preprocessing Packages')
-from iSNAP_PP import calc_qc_metrics, quality_control, normalization, pcaVarianceRatio, integration, cluster, TableNormalize, PCAInt, TestLeiden, SelectLeiden
+from iSNAP_PP import (
+    calc_qc_metrics, 
+    quality_control, 
+    normalization, 
+    pcaVarianceRatio, 
+    integration, 
+    cluster,
+    silhouetteLeiden, 
+    TableNormalize, 
+    PCAInt, 
+    TestLeiden, 
+    SelectLeiden
+)
 print('\nImporting Analysis Packages')
 from iSNAP_Analysis import (
     deg, 
@@ -91,9 +103,16 @@ from iSNAP_Analysis import (
     SpecificCluster, 
     UMAPCellType,
     FeatureMap
-)
+    )
 print('\nImporting Post Analysis Packages')
-from iSNAP_Post import TypeSampleTable, DGEWindow, VolcanoPlot, dgetoCSV, plotVolcano 
+from iSNAP_Post import (
+    TypeSampleTable,
+    FinishedWidget, 
+    DGEWindow, 
+    VolcanoPlot, 
+    dgetoCSV, 
+    plotVolcano
+    ) 
 
 from iSNAP_CellSorter import CellSortGame
 
@@ -153,6 +172,7 @@ class MainWindow(QWidget):
             self.page9 = UMAPCellType()
             self.page10 = [PCAInt(), TestLeiden(), SelectLeiden(), DEGDotplot(), AnnotateCluster(False)]
             self.page15 = TypeSampleTable()
+            self.page16 = FinishedWidget()
 
             # Page to Main Window Signals
             self.page8.toClusterSignal.connect(self.toCluster)
@@ -194,6 +214,7 @@ class MainWindow(QWidget):
             for page in self.page10:
                 self.stackedWidget.addWidget(page)
             self.stackedWidget.addWidget(self.page15)
+            self.stackedWidget.addWidget(self.page16)
 
             # Set Main Features
             self.layoutPages = QVBoxLayout()
@@ -334,7 +355,6 @@ class MainWindow(QWidget):
             self.featureMap.updateUMAP(figUMAP)
 
         def toCluster(self, clusterIndex, nTop):
-            paramDict = {}
             try:
                 if self.stackedWidget.currentIndex() == self.stackedWidget.indexOf(self.page8):         
                     isMain = True                    
@@ -440,6 +460,9 @@ class MainWindow(QWidget):
                 if currentPage == 8 and h5adDetected:
                     self.h5adImport = True
                     paramDict['h5adDetected'] = True
+                
+                if currentPage == 16:
+                    self.close()
 
                 if currentPage == 14:
                     print('Page 15: Setting Cell Types...')
@@ -470,7 +493,10 @@ class MainWindow(QWidget):
                     elif self.page10[2].rbRes3.isChecked():
                         paramDict['chosenResSub'] = 2
                     else:
-                        self.loadScreen.close()
+                        if self.devMode:
+                            self.loadScreen._load_finished()
+                        else:
+                            self.loadScreen.close()
                         self.setBackNextButton()
                         raise ValueError('No Option Selected.')
                         
@@ -532,6 +558,10 @@ class MainWindow(QWidget):
                     elif self.page6.rbRes3.isChecked():
                         paramDict['chosenRes'] = 2
                     else:
+                        if self.devMode:
+                            self.loadScreen._load_finished()
+                        else:
+                            self.loadScreen.close()
                         self.setBackNextButton()
                         raise ValueError('No Option Selected.')
 
@@ -627,6 +657,9 @@ class MainWindow(QWidget):
             
 
         def setNextpg(self, inputSetPage, currentPage):
+            if currentPage == 15:
+                self.stackedWidget.setCurrentIndex(currentPage+1)
+
             if currentPage == 14:
                 try:
                     self.page9.setPage(inputSetPage['figUMAP'], inputSetPage['cellTypes'], inputSetPage['isSpatial'])
@@ -674,6 +707,7 @@ class MainWindow(QWidget):
                 try:
                     self.page10[2].setPage(
                         inputSetPage['figListLeiden'],
+                        inputSetPage['silhouetteScore'],
                         inputSetPage['resListLeiden'],
                         inputSetPage['singleRes']
                         )
@@ -745,6 +779,7 @@ class MainWindow(QWidget):
                 try:
                     self.page6.setPage(
                         inputSetPage['figListLeiden'],
+                        inputSetPage['silhouetteScore'],
                         inputSetPage['resListLeiden'],
                         inputSetPage['singleRes']
                         )
@@ -911,8 +946,14 @@ class MainWindow(QWidget):
                 self.back_btn.setText('Back')
                 self.save_btn.show()
                 self.next_btn.setText('Finished')
-                self.next_btn.setEnabled(False)
+                self.next_btn.setEnabled(True)
                 self.back_btn.setEnabled(True)
+            elif self.stackedWidget.currentIndex() == 16:
+                self.back_btn.setText('Back')
+                self.save_btn.show()
+                self.next_btn.setText('Close (Unsaved Data will be lost)')
+                self.next_btn.setEnabled(True)
+                self.next_btn.setEnabled(True)
             else:
                 self.back_btn.setText('Back')
                 self.save_btn.hide()
@@ -1469,10 +1510,13 @@ class MainWorker(QObject):
                     makedirs(outpath)  
                 
                 figUMAPList = []
+                silhouetteScore = []
                 for i in range(len(self.paramDict['resListSub'])):
                     adatasLeiden = self.adatasSub.copy()
                     adatasLeiden.obs['leiden'] = self.leidenListSub[i][0]
                     adatasLeiden.uns['leiden'] = self.leidenListSub[i][1]
+
+                    silhouetteScore.append(silhouetteLeiden(adatasLeiden))
 
                     size = 240000/adatasLeiden.n_obs
                     figUMAPList.append(pltumap(adatasLeiden, show=False, color="leiden", frameon = False, palette=default_102, title=f'Resolution {self.paramDict['resListSub'][i]}, {suffix}', size=size, return_fig=True))
@@ -1481,6 +1525,7 @@ class MainWorker(QObject):
                     figUMAPList[i].savefig(join(outpath, f'Leiden Resolution {self.paramDict["resListSub"][i]}.png'))
                 
                 inputSetPage['figListLeiden'] = figUMAPList
+                inputSetPage['silhouetteScore'] = silhouetteScore
                 inputSetPage['resListLeiden'] = self.paramDict['resListSub']
                 inputSetPage['singleRes'] = self.paramDict['singleResSub']
             
@@ -1730,10 +1775,13 @@ class MainWorker(QObject):
                     makedirs(outpath)  
                 
                 figUMAPList = []
+                silhouetteScore = []
                 for i in range(len(self.paramDict['resList'])):
                     adatasLeiden = self.adatasWhole.copy()
                     adatasLeiden.obs['leiden'] = self.leidenList[i][0]
                     adatasLeiden.uns['leiden'] = self.leidenList[i][1]
+
+                    silhouetteScore.append(silhouetteLeiden(adatasLeiden))
 
                     size = 240000/adatasLeiden.n_obs
                     figUMAPList.append(pltumap(adatasLeiden, show=False, color="leiden", frameon = False, palette=default_102, title=f'Resolution {self.paramDict['resList'][i]}, {suffix}', return_fig=True))
@@ -1742,6 +1790,7 @@ class MainWorker(QObject):
                     figUMAPList[i].savefig(join(outpath, f'Leiden Resolution {self.paramDict["resList"][i]}.png'))
                 
                 inputSetPage['figListLeiden'] = figUMAPList
+                inputSetPage['silhouetteScore'] = silhouetteScore
                 inputSetPage['resListLeiden'] = self.paramDict['resList']
                 inputSetPage['singleRes'] = self.paramDict['singleRes']
             
@@ -1798,7 +1847,7 @@ class MainWorker(QObject):
 
                 # Normalize Total, log1p, HVG, and scaling
                 self.adatasWhole = normalization(
-                    self.adatasWhole.copy(), 
+                    self.adatasBeforeHVG.copy(), 
                     self.paramDict['boolHVG'], 
                     self.paramDict['nHVG'], # Keeps only highly variable genes if hvg parameter is set to true.
                     self.paramDict['seed']
@@ -1850,7 +1899,7 @@ class MainWorker(QObject):
                     ]
                     log.writelines(lines)
 
-                self.adatasRaw, self.adatasWhole = quality_control(
+                self.adatasRaw, self.adatasBeforeHVG = quality_control(
                     self.adatasRaw.copy(), 
                     self.paramDict['minCells'], 
                     self.paramDict['minGenes'], 
@@ -1861,7 +1910,7 @@ class MainWorker(QObject):
                     self.paramDict['output_path']
                     )
                 
-                uniqueSamples = self.adatasWhole.obs['sample'].unique()
+                uniqueSamples = self.adatasBeforeHVG.obs['sample'].unique()
                 numCellsRaw = []
                 avgGenesRaw = []
                 numCellsQC = []
@@ -1871,8 +1920,8 @@ class MainWorker(QObject):
                     numCellsRaw.append(len(self.adatasRaw[self.adatasRaw.obs['sample'] == uniqueSamples[i]].obs_names))
                     avgGenesRaw.append(average(self.adatasRaw[self.adatasRaw.obs['sample'] == uniqueSamples[i]].obs['n_genes_by_counts']))
                     # Metrics after QC
-                    numCellsQC.append(len(self.adatasWhole[self.adatasWhole.obs['sample'] == uniqueSamples[i]].obs_names))
-                    avgGenesQC.append(average(self.adatasWhole[self.adatasWhole.obs['sample'] == uniqueSamples[i]].obs['n_genes_by_counts']))
+                    numCellsQC.append(len(self.adatasBeforeHVG[self.adatasBeforeHVG.obs['sample'] == uniqueSamples[i]].obs_names))
+                    avgGenesQC.append(average(self.adatasBeforeHVG[self.adatasBeforeHVG.obs['sample'] == uniqueSamples[i]].obs['n_genes_by_counts']))
 
                 inputSetPage['uniqueSamples'] = uniqueSamples
                 inputSetPage['numCellsRaw'] = numCellsRaw
@@ -1928,10 +1977,10 @@ class MainWorker(QObject):
                 figRP = Figure(constrained_layout=True)
                 axRP = figRP.add_subplot(111)
 
-                violin(self.adatasRaw, 'total_counts', ylabel='Cell Counts', xlabel='Gene Distribution', ax=axCells, show=False)
-                violin(self.adatasRaw, 'n_genes_by_counts', ylabel='Gene Counts', xlabel='Cell Distribution', ax=axGenes, show=False)
-                violin(self.adatasRaw, 'pct_counts_mito', ylabel='Percent Mitochondrial Genes', xlabel='Cell Distribution', ax=axMT, show=False)
-                violin(self.adatasRaw, 'pct_counts_RP', ylabel='Percent Ribosomal Genes', xlabel='Cell Distribution', ax=axRP, show=False)
+                violin(self.adatasRaw, 'total_counts', log=True, ylabel='Cell Counts', xlabel='Gene Counts', ax=axCells, stripplot=False, show=False)
+                violin(self.adatasRaw, 'n_genes_by_counts', log=True, ylabel='Gene Counts', xlabel='Cell Counts', ax=axGenes, stripplot=False, show=False)
+                violin(self.adatasRaw, 'pct_counts_mito', log=True, ylabel='Percent Mitochondrial Genes', xlabel='Cell Counts', ax=axMT, stripplot=False, show=False)
+                violin(self.adatasRaw, 'pct_counts_RP', log=True, ylabel='Percent Ribosomal Genes', xlabel='Cell Counts', ax=axRP, stripplot=False, show=False)
 
                 axCells.set(xticklabels=[])
                 axGenes.set(xticklabels=[])

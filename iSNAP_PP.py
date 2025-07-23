@@ -32,6 +32,8 @@ from scanpy.external.pp import harmony_integrate
 print('- Importing Scrublet...')
 from scrublet import Scrublet
 
+print('- Importing sklearn')
+from sklearn.metrics import silhouette_score
 
 print('- Importing Scipy')
 from scipy.sparse import issparse
@@ -230,9 +232,9 @@ def integration(adatas, npcs, nNeigh, intMeth, seed):
     if len(set(adatas.obs['sample'])) > 1:
         if intMeth == 'Harmony':
             print('Integrating using Harmony...')
-            harmony_integrate(adatas, key = 'sample', random_state=seed)
+            harmony_integrate(adatas, key = 'sample', adjusted_basis='X_pca', random_state=seed)
             print('Computing Nearest Neighbors...')
-            neighbors(adatas, n_neighbors=nNeigh, n_pcs = npcs, random_state=seed, use_rep='X_pca_harmony')
+            neighbors(adatas, n_neighbors=nNeigh, n_pcs = npcs, random_state=seed, use_rep='X_pca')
         
         elif intMeth == 'BBKNN':
             print('Integrating using BBKNN...')
@@ -252,11 +254,16 @@ def integration(adatas, npcs, nNeigh, intMeth, seed):
     return adatas
 
 
-
 def cluster(adatas, res, seed):
     leiden(adatas, key_added="leiden", resolution=res, random_state=seed)
     leidenParts = [adatas.obs['leiden'], adatas.uns['leiden']]
     return leidenParts
+
+def silhouetteLeiden(adatas):
+    return silhouette_score(
+        adatas.obsm['X_pca'], 
+        adatas.obs['leiden']
+        )
 
 
 ##########
@@ -460,7 +467,7 @@ class SelectLeiden(QWidget):
         self.layoutParam = QGridLayout()
         
         # Create Widget
-        self.vspacer = QSpacerItem(1, 1, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.vspacer = QSpacerItem(1, 1, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.hspacer =  QSpacerItem(1, 1, QSizePolicy.Expanding, QSizePolicy.Minimum)
         
         self.labelDEGMeth = QLabel('Select Statistical Test for DEG')
@@ -474,7 +481,7 @@ class SelectLeiden(QWidget):
         self.setLayout(self.layoutMain)
 
     
-    def setPage(self, figList, resList, singleRes):
+    def setPage(self, figList, score, resList, singleRes):
         self.clearLayout(self.layoutUMAP)
         self.clearLayout(self.layoutMain)
         self.clearLayout(self.layoutParam)
@@ -482,28 +489,36 @@ class SelectLeiden(QWidget):
         self.plotUMAP = []
         for i in range(len(figList)):
             self.plotUMAP.append(FigureCanvasQTAgg(figList[i]))
+            self.plotUMAP[i].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
             self.layoutUMAP.addWidget(self.plotUMAP[i], stretch=1)
-
-        self.layoutParam.addWidget(self.comboDEGMeth, 0, 0, alignment=Qt.AlignLeft)
-        self.layoutParam.addWidget(self.labelDEGMeth, 0, 1, alignment=Qt.AlignLeft)
+        
         if not singleRes:
             labelLeiden = QLabel('Leiden Plots: Choose One')
             self.rbRes1 = QRadioButton('', self)
-            self.labelRes1 = QLabel(f'Resolution {resList[0]}')
+            self.labelRes1 = QLabel(f'Resolution {resList[0]} (Silhouette Score: {score[0]:.2f})')
             self.rbRes2 = QRadioButton('', self)
-            self.labelRes2 = QLabel(f'Resolution {resList[1]}')
+            self.labelRes2 = QLabel(f'Resolution {resList[1]} (Silhouette Score: {score[1]:.2f})')
             self.rbRes3 = QRadioButton('', self)
-            self.labelRes3 = QLabel(f'Resolution {resList[2]}')
+            self.labelRes3 = QLabel(f'Resolution {resList[2]} (Silhouette Score: {score[2]:.2f})')
 
-            self.layoutParam.addWidget(labelLeiden, 1, 0, 1, 4, alignment=Qt.AlignLeft)
-            self.layoutParam.addWidget(self.rbRes1, 2, 0, alignment=Qt.AlignCenter)
-            self.layoutParam.addWidget(self.labelRes1, 2, 1, alignment=Qt.AlignLeft)
-            self.layoutParam.addWidget(self.rbRes2, 3, 0, alignment=Qt.AlignCenter)
-            self.layoutParam.addWidget(self.labelRes2, 3, 1, alignment=Qt.AlignLeft)
-            self.layoutParam.addWidget(self.rbRes3, 4, 0, alignment=Qt.AlignCenter)
-            self.layoutParam.addWidget(self.labelRes3, 4, 1, alignment=Qt.AlignLeft)
+            self.layoutParam.addWidget(labelLeiden, 0, 0)
+            self.layoutParam.addWidget(self.rbRes1, 1, 0, alignment=Qt.AlignCenter)
+            self.layoutParam.addWidget(self.labelRes1, 1, 1, alignment=Qt.AlignLeft)
+            self.layoutParam.addWidget(self.rbRes2, 2, 0, alignment=Qt.AlignCenter)
+            self.layoutParam.addWidget(self.labelRes2, 2, 1, alignment=Qt.AlignLeft)
+            self.layoutParam.addWidget(self.rbRes3, 3, 0, alignment=Qt.AlignCenter)
+            self.layoutParam.addWidget(self.labelRes3, 3, 1, alignment=Qt.AlignLeft)
+            self.layoutParam.addWidget(self.comboDEGMeth, 4, 0, alignment=Qt.AlignLeft)
+            self.layoutParam.addWidget(self.labelDEGMeth, 4, 1, alignment=Qt.AlignLeft)
+
+        else:
+            labelScore = QLabel(f'Silhouette Score: {score[0]:.2f}')
+            self.layoutParam.addWidget(labelScore, 0, 0)
+            self.layoutParam.addWidget(self.comboDEGMeth, 1, 0, alignment=Qt.AlignLeft)
+            self.layoutParam.addWidget(self.labelDEGMeth, 1, 1, alignment=Qt.AlignLeft)
+
         self.layoutParam.addItem(self.hspacer, 0, 2)
-                
+
         self.layoutMain.addLayout(self.layoutUMAP)
         self.layoutMain.addLayout(self.layoutParam)
         
@@ -514,5 +529,3 @@ class SelectLeiden(QWidget):
             child = layout.takeAt(0)
             if child.widget():
                 child.widget().setParent(None)
-
-
