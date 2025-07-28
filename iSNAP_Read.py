@@ -18,8 +18,8 @@ print('- Importing scipy...')
 from scipy.sparse import csr_matrix
 
 print('- Importing PyQt...')
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import ( 
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import ( 
     QWidget, 
     QVBoxLayout, 
     QHBoxLayout,
@@ -167,7 +167,7 @@ class ReadQC(QWidget):
         
 
         # Assign Widgets #
-        self.hspacer = QSpacerItem(1, 1, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.hspacer = QSpacerItem(1, 1, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         # Datasets Read
         self.labelRead = QLabel('Datasets Read')
@@ -215,18 +215,18 @@ class ReadQC(QWidget):
         self.clearLayout(self.layoutViolin)
 
         # Add Widgets to Layouts
-        self.layoutParam.addWidget(self.checkScrublet, 0, 0, alignment=Qt.AlignCenter)
-        self.layoutParam.addWidget(self.labelScrublet, 0, 1, alignment=Qt.AlignLeft)
-        self.layoutParam.addWidget(self.inMinCells, 1, 0, alignment=Qt.AlignLeft)
-        self.layoutParam.addWidget(self.labelMinCells, 1, 1, alignment=Qt.AlignLeft)
-        self.layoutParam.addWidget(self.inMinGenes, 2, 0, alignment=Qt.AlignLeft)
-        self.layoutParam.addWidget(self.labelMinGenes, 2, 1, alignment=Qt.AlignLeft)
+        self.layoutParam.addWidget(self.checkScrublet, 0, 0, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.layoutParam.addWidget(self.labelScrublet, 0, 1, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.layoutParam.addWidget(self.inMinCells, 1, 0, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.layoutParam.addWidget(self.labelMinCells, 1, 1, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.layoutParam.addWidget(self.inMinGenes, 2, 0, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.layoutParam.addWidget(self.labelMinGenes, 2, 1, alignment=Qt.AlignmentFlag.AlignLeft)
         if modality != 'Xenium':
-            self.layoutParam.addWidget(self.inPerMt, 3, 0, alignment=Qt.AlignLeft)
-            self.layoutParam.addWidget(self.labelPerMt, 3, 1, alignment=Qt.AlignLeft)
-            self.layoutParam.addWidget(self.inPerRib, 4, 0, alignment=Qt.AlignLeft)
-            self.layoutParam.addWidget(self.labelPerRib, 4, 1, alignment=Qt.AlignLeft)
-        self.layoutParam.addItem(self.hspacer, 0, 2, alignment=Qt.AlignLeft)
+            self.layoutParam.addWidget(self.inPerMt, 3, 0, alignment=Qt.AlignmentFlag.AlignLeft)
+            self.layoutParam.addWidget(self.labelPerMt, 3, 1, alignment=Qt.AlignmentFlag.AlignLeft)
+            self.layoutParam.addWidget(self.inPerRib, 4, 0, alignment=Qt.AlignmentFlag.AlignLeft)
+            self.layoutParam.addWidget(self.labelPerRib, 4, 1, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.layoutParam.addItem(self.hspacer, 0, 2, alignment=Qt.AlignmentFlag.AlignLeft)
 
         self.layoutViolin.addWidget(figCells)
         self.layoutViolin.addWidget(figGenes)
@@ -256,7 +256,7 @@ class err_NoFiles(QMessageBox):
     def __init__(self):
         super().__init__()
 
-        self.setIcon(QMessageBox.Critical)
+        self.setIcon(QMessageBox.Icon.Critical)
         self.setWindowTitle('Error!')
         self.setText('Going back to folder selection. \nTransciptomic or spatial files not found. \nCheck Folders or Modality.')
         

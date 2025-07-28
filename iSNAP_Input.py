@@ -6,9 +6,9 @@ from os.path import (
     join
 )
 print('- Importing PyQt...')
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import ( 
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPixmap
+from PyQt6.QtWidgets import ( 
     QWidget, 
     QVBoxLayout, 
     QHBoxLayout, 
@@ -38,12 +38,11 @@ class SetModality(QWidget):
 
         # Create Widgets
         icon = QPixmap('iSNAP_Icon.png')
-        resizedIcon = icon.scaled(200, 200, Qt.KeepAspectRatio)
+        resizedIcon = icon.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio)
         labelIcon = QLabel('iSNAP Icon')
         labelIcon.setPixmap(resizedIcon)
         labelWelcome = QLabel('Welcome to iSNAP!')
         labelWelcome.setStyleSheet('font-size: 24px;')
-
 
         modalities = ['Xenium', 'Cell Ranger', 'Single .h5ad file']
         self.comboModality = QComboBox()
@@ -55,13 +54,13 @@ class SetModality(QWidget):
 
         self.checkDev = QCheckBox('Dev Mode')
 
-        hspacer = QSpacerItem(1, 1, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        vspacer = QSpacerItem(1, 1, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        hspacer = QSpacerItem(1, 1, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        vspacer = QSpacerItem(1, 1, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         
         # Set Layouts
-        self.layoutParam.addWidget(self.inSeed, 0, 0, alignment=Qt.AlignLeft)
+        self.layoutParam.addWidget(self.inSeed, 0, 0, alignment=Qt.AlignmentFlag.AlignLeft)
         self.layoutParam.addWidget(self.labelSeed, 0, 1)
-        self.layoutParam.addWidget(self.comboModality, 1, 0, alignment=Qt.AlignLeft)
+        self.layoutParam.addWidget(self.comboModality, 1, 0, alignment=Qt.AlignmentFlag.AlignLeft)
         self.layoutParam.addWidget(self.labelModality, 1, 1)
         self.layoutParam.addItem(hspacer,0,2)
         self.layoutParam.addItem(hspacer,1,2)
@@ -122,8 +121,8 @@ class FileFinder(QWidget):
         self.confirm_button.clicked.connect(self.confirm_folder)
 
         # Add widgets to layout, organize layout
-        self.layoutInBtns.addWidget(self.selectIn_btn, alignment = Qt.AlignTop)
-        self.layoutInBtns.addWidget(self.removeIn_btn, alignment=Qt.AlignTop)
+        self.layoutInBtns.addWidget(self.selectIn_btn, alignment=Qt.AlignmentFlag.AlignTop)
+        self.layoutInBtns.addWidget(self.removeIn_btn, alignment=Qt.AlignmentFlag.AlignTop)
         self.layoutIn.addWidget(self.listIn) 
         self.layoutIn.addLayout(self.layoutInBtns) # Add Select button on same row as list
         
@@ -186,8 +185,8 @@ class FileFinder(QWidget):
 class FileDialog(QFileDialog):
     def __init__(self, *args):
         QFileDialog.__init__(self, *args)
-        self.setOption(self.DontUseNativeDialog, True)
-        self.setFileMode(self.ExistingFiles)
+        self.setOption(self.Option.DontUseNativeDialog, True)
+        self.setFileMode(self.FileMode.ExistingFiles)
         self.setGeometry(100, 100, 1280, 720)
         btns = self.findChildren(QPushButton)
         self.openBtn = [x for x in btns if 'open' in str(x.text()).lower()][0]

@@ -27,8 +27,8 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 
 print('- Importing PyQt...')
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtWidgets import (
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtWidgets import (
     QWidget, 
     QVBoxLayout,
     QHBoxLayout,
@@ -171,7 +171,7 @@ class DEGDotplot(QWidget):
     
     def setPage(self, figDEG):
         self.DEGDotplot = FigureCanvasQTAgg(figDEG)
-        self.DEGDotplot.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.DEGDotplot.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         self.clearLayout(self.layoutMain)
 
@@ -203,7 +203,7 @@ class AnnotateCluster(QWidget):
         self.layoutSub = QVBoxLayout()
         
         # Create Widget
-        self.spacer = QSpacerItem(1, 1, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.spacer = QSpacerItem(1, 1, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         self.labelExplore = QLabel('Exploration:')
         self.btnSpatial = QPushButton('Save Xenium Labels')
         self.btnFeature = QPushButton('Explore Gene Markers')
@@ -225,7 +225,7 @@ class AnnotateCluster(QWidget):
 
         self.UMAPAnnotate = FigureCanvasQTAgg(figUMAP)
         self.toolbar = NavigationToolbar2QT(self.UMAPAnnotate, self)
-        self.UMAPAnnotate.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.UMAPAnnotate.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         pltclose('all')
 
@@ -244,7 +244,7 @@ class AnnotateCluster(QWidget):
         if isSpatial:
             self.layoutSub.addWidget(self.btnSpatial)
         self.layoutSub.addItem(self.spacer)
-        self.layoutSub.addWidget(self.labelNTop, alignment=Qt.AlignBottom)
+        self.layoutSub.addWidget(self.labelNTop, alignment=Qt.AlignmentFlag.AlignBottom)
         self.layoutSub.addWidget(self.comboNTop)
         self.layoutSub.addWidget(self.comboCluster)
         self.layoutSub.addWidget(self.btnAnnotate)
@@ -298,7 +298,7 @@ class SpecificCluster(QWidget):
     def setUMAP(self, figUMAP):
         self.UMAPSpecific = FigureCanvasQTAgg(figUMAP)
         self.toolbar = NavigationToolbar2QT(self.UMAPSpecific, self)
-        self.UMAPSpecific.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.UMAPSpecific.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         pltclose('all')
 
@@ -350,7 +350,7 @@ class UMAPCellType(QWidget):
         self.layoutCombsub = QHBoxLayout()
         
         # Create Widget
-        self.spacer = QSpacerItem(1, 1, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.spacer = QSpacerItem(1, 1, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         
         self.labelSubClust = QLabel('Select a SubCluster to annotate or \nClick Finish to save')
         self.btnConfirm = QPushButton('Subcluster')
@@ -369,7 +369,7 @@ class UMAPCellType(QWidget):
         self.UMAPCellType = FigureCanvasQTAgg(figUMAP)
         self.toolbar = NavigationToolbar2QT(self.UMAPCellType, self)
 
-        self.UMAPCellType.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.UMAPCellType.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         self.comboType = QComboBox()
         self.comboComb1 = QComboBox()
@@ -399,7 +399,7 @@ class UMAPCellType(QWidget):
 
         self.clearLayout(self.layoutSelCluster)
         self.layoutSelCluster.addItem(self.spacer)
-        self.layoutSelCluster.addWidget(self.labelSubClust, alignment=Qt.AlignBottom)
+        self.layoutSelCluster.addWidget(self.labelSubClust, alignment=Qt.AlignmentFlag.AlignBottom)
         self.layoutSelCluster.addWidget(self.comboType)
         self.layoutSelCluster.addWidget(self.btnConfirm)
         self.layoutSelCluster.addItem(self.spacer)
@@ -453,7 +453,7 @@ class FeatureMap(QWidget):
         self.layoutSub = QVBoxLayout()
         
         # Create Widget
-        self.spacer = QSpacerItem(1, 1, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.spacer = QSpacerItem(1, 1, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         self.labelGene = QLabel('Type Gene Marker')
         self.inGene = QLineEdit('')
         self.btnTyped = QPushButton('Plot Typed Marker')
@@ -497,7 +497,7 @@ class FeatureMap(QWidget):
         try:
             UMAP = FigureCanvasQTAgg(figUMAP)
             toolbar = NavigationToolbar2QT(UMAP, self)
-            UMAP.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+            UMAP.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
             self.clearLayout(self.layoutUMAP)
             self.layoutUMAP.addWidget(UMAP)

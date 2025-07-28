@@ -58,8 +58,8 @@ print('- Importing BBKNN...')
 from bbknn import bbknn
 
 print('- Importing PyQt...')
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import ( 
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import ( 
     QWidget, 
     QTableWidget,
     QTableWidgetItem,
@@ -192,6 +192,10 @@ def normalization(adatas, boolHVG, nHVG, seed):
     return adatas
 
 def pcaVarianceRatio(adatas, n_pcs=50, pca_key='pca', dpi=200):
+    if len(adatas.uns[pca_key]['variance_ratio'])<n_pcs:
+        print(f'n_obs too small. Adjusting to {len(adatas.uns[pca_key]['variance_ratio'])} PCs.')
+        n_pcs = len(adatas.uns[pca_key]['variance_ratio'])
+
     varRatio = adatas.uns[pca_key]['variance_ratio'][:n_pcs]
     figPCA = pltfigure(constrained_layout=True, dpi=dpi)
     axPCA = figPCA.add_subplot(111)
@@ -279,20 +283,20 @@ class TableNormalize(QWidget):
         self.layoutParam = QGridLayout()
 
         # Create Widgets
-        self.hspacer =  QSpacerItem(1, 1, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.hspacer =  QSpacerItem(1, 1, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         self.labelTable = QLabel('Quality Control Results:')
         self.tableQC = QTableWidget()
         self.labelHVG = QLabel('Highly Variable Genes')
         self.checkHVG = QCheckBox()
-        self.checkLabelHVG = QLabel('Filter highly variable genes')
+        self.checkLabelHVG = QLabel('Identify highly variable genes')
         self.inHVG = QLineEdit('3000')
         self.labelInHVG = QLabel('Number of highly variable genes to keep')
 
         # Set Layout
-        self.layoutParam.addWidget(self.checkHVG, 0, 0, alignment = Qt.AlignCenter)
-        self.layoutParam.addWidget(self.checkLabelHVG, 0, 1, alignment = Qt.AlignLeft)
-        self.layoutParam.addWidget(self.inHVG, 1, 0, alignment = Qt.AlignLeft)
-        self.layoutParam.addWidget(self.labelInHVG, 1, 1, alignment = Qt.AlignLeft)
+        self.layoutParam.addWidget(self.checkHVG, 0, 0, alignment = Qt.AlignmentFlag.AlignCenter)
+        self.layoutParam.addWidget(self.checkLabelHVG, 0, 1, alignment = Qt.AlignmentFlag.AlignLeft)
+        self.layoutParam.addWidget(self.inHVG, 1, 0, alignment = Qt.AlignmentFlag.AlignLeft)
+        self.layoutParam.addWidget(self.labelInHVG, 1, 1, alignment = Qt.AlignmentFlag.AlignLeft)
         self.layoutParam.addItem(self.hspacer, 0, 2)
         
         self.layoutMain.addWidget(self.labelTable)
@@ -339,10 +343,8 @@ class PCAInt(QWidget):
 
         # Create Widgets
         self.labelPCA = QLabel('Principal Component Analysis (PCA)')
-
-        self.plotPCA = FigureCanvasQTAgg()
         
-        self.hspacer =  QSpacerItem(1, 1, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.hspacer =  QSpacerItem(1, 1, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         self.inNPC = QLineEdit('50')
         self.labelNPC = QLabel('Number of PCs')
         self.inNeigh = QLineEdit('15')
@@ -363,16 +365,16 @@ class PCAInt(QWidget):
 
         plotPCA = FigureCanvasQTAgg(figPCA)
         toolbar = NavigationToolbar2QT(plotPCA, self)
-        self.plotPCA.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        plotPCA.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         self.clearLayout(self.layoutParam)
-        self.layoutParam.addWidget(self.inNPC, 0, 0, alignment=Qt.AlignLeft)
-        self.layoutParam.addWidget(self.labelNPC, 0, 1, alignment=Qt.AlignLeft)
-        self.layoutParam.addWidget(self.inNeigh, 1, 0, alignment=Qt.AlignLeft)
-        self.layoutParam.addWidget(self.labelNeigh, 1, 1, alignment=Qt.AlignLeft)
+        self.layoutParam.addWidget(self.inNPC, 0, 0, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.layoutParam.addWidget(self.labelNPC, 0, 1, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.layoutParam.addWidget(self.inNeigh, 1, 0, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.layoutParam.addWidget(self.labelNeigh, 1, 1, alignment=Qt.AlignmentFlag.AlignLeft)
         if multiSample:
-            self.layoutParam.addWidget(self.inInt, 2, 0, alignment=Qt.AlignLeft)
-            self.layoutParam.addWidget(self.labelInt, 2, 1, alignment=Qt.AlignLeft)
+            self.layoutParam.addWidget(self.inInt, 2, 0, alignment=Qt.AlignmentFlag.AlignLeft)
+            self.layoutParam.addWidget(self.labelInt, 2, 1, alignment=Qt.AlignmentFlag.AlignLeft)
         self.layoutParam.addItem(self.hspacer, 0, 2)
 
         self.clearLayout(self.layoutMain)
@@ -397,10 +399,7 @@ class TestLeiden(QWidget):
         self.layoutMain = QVBoxLayout()
         self.layoutParam = QGridLayout()
 
-        # Create Widgets
-        self.plotUMAP = FigureCanvasQTAgg()
-        self.plotUMAP.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        
+        # Create Widgets        
         self.labelLeiden = QLabel('Leiden Settings:')
         self.inSingle = QCheckBox()
         self.inSingle.toggled.connect(self.leidenEnable)
@@ -411,17 +410,17 @@ class TestLeiden(QWidget):
         self.labelRes2 = QLabel('Resolution for Leiden Clustering')
         self.inRes3 = QLineEdit('0.3')
         self.labelRes3 = QLabel('Resolution for Leiden Clustering')
-        self.hspacer =  QSpacerItem(1, 1, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.hspacer =  QSpacerItem(1, 1, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         
         # Add widgets to layout
-        self.layoutParam.addWidget(self.inSingle, 0, 0, alignment=Qt.AlignCenter)
-        self.layoutParam.addWidget(self.labelSingle, 0, 1, alignment=Qt.AlignLeft)
-        self.layoutParam.addWidget(self.inRes1, 1, 0, alignment=Qt.AlignLeft)
-        self.layoutParam.addWidget(self.labelRes1, 1, 1, alignment=Qt.AlignLeft)
-        self.layoutParam.addWidget(self.inRes2, 2, 0, alignment=Qt.AlignLeft)
-        self.layoutParam.addWidget(self.labelRes2, 2, 1, alignment=Qt.AlignLeft)
-        self.layoutParam.addWidget(self.inRes3, 3, 0, alignment=Qt.AlignLeft)
-        self.layoutParam.addWidget(self.labelRes3, 3, 1, alignment=Qt.AlignLeft)
+        self.layoutParam.addWidget(self.inSingle, 0, 0, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.layoutParam.addWidget(self.labelSingle, 0, 1, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.layoutParam.addWidget(self.inRes1, 1, 0, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.layoutParam.addWidget(self.labelRes1, 1, 1, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.layoutParam.addWidget(self.inRes2, 2, 0, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.layoutParam.addWidget(self.labelRes2, 2, 1, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.layoutParam.addWidget(self.inRes3, 3, 0, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.layoutParam.addWidget(self.labelRes3, 3, 1, alignment=Qt.AlignmentFlag.AlignLeft)
         self.layoutParam.addItem(self.hspacer, 0, 2)
 
         #Initiate Layout
@@ -430,7 +429,7 @@ class TestLeiden(QWidget):
     def setPage(self, figUMAP):
         self.plotUMAP = FigureCanvasQTAgg(figUMAP)
         self.toolbar = NavigationToolbar2QT(self.plotUMAP, self)
-        self.plotUMAP.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.plotUMAP.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         self.clearLayout(self.layoutMain)
         self.layoutMain.addWidget(self.plotUMAP)
@@ -467,8 +466,8 @@ class SelectLeiden(QWidget):
         self.layoutParam = QGridLayout()
         
         # Create Widget
-        self.vspacer = QSpacerItem(1, 1, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        self.hspacer =  QSpacerItem(1, 1, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.vspacer = QSpacerItem(1, 1, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        self.hspacer =  QSpacerItem(1, 1, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         
         self.labelDEGMeth = QLabel('Select Statistical Test for DEG')
         self.comboDEGMeth = QComboBox()
@@ -489,7 +488,7 @@ class SelectLeiden(QWidget):
         self.plotUMAP = []
         for i in range(len(figList)):
             self.plotUMAP.append(FigureCanvasQTAgg(figList[i]))
-            self.plotUMAP[i].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+            self.plotUMAP[i].setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
             self.layoutUMAP.addWidget(self.plotUMAP[i], stretch=1)
         
         if not singleRes:
@@ -502,20 +501,20 @@ class SelectLeiden(QWidget):
             self.labelRes3 = QLabel(f'Resolution {resList[2]} (Silhouette Score: {score[2]:.2f})')
 
             self.layoutParam.addWidget(labelLeiden, 0, 0)
-            self.layoutParam.addWidget(self.rbRes1, 1, 0, alignment=Qt.AlignCenter)
-            self.layoutParam.addWidget(self.labelRes1, 1, 1, alignment=Qt.AlignLeft)
-            self.layoutParam.addWidget(self.rbRes2, 2, 0, alignment=Qt.AlignCenter)
-            self.layoutParam.addWidget(self.labelRes2, 2, 1, alignment=Qt.AlignLeft)
-            self.layoutParam.addWidget(self.rbRes3, 3, 0, alignment=Qt.AlignCenter)
-            self.layoutParam.addWidget(self.labelRes3, 3, 1, alignment=Qt.AlignLeft)
-            self.layoutParam.addWidget(self.comboDEGMeth, 4, 0, alignment=Qt.AlignLeft)
-            self.layoutParam.addWidget(self.labelDEGMeth, 4, 1, alignment=Qt.AlignLeft)
+            self.layoutParam.addWidget(self.rbRes1, 1, 0, alignment=Qt.AlignmentFlag.AlignCenter)
+            self.layoutParam.addWidget(self.labelRes1, 1, 1, alignment=Qt.AlignmentFlag.AlignLeft)
+            self.layoutParam.addWidget(self.rbRes2, 2, 0, alignment=Qt.AlignmentFlag.AlignCenter)
+            self.layoutParam.addWidget(self.labelRes2, 2, 1, alignment=Qt.AlignmentFlag.AlignLeft)
+            self.layoutParam.addWidget(self.rbRes3, 3, 0, alignment=Qt.AlignmentFlag.AlignCenter)
+            self.layoutParam.addWidget(self.labelRes3, 3, 1, alignment=Qt.AlignmentFlag.AlignLeft)
+            self.layoutParam.addWidget(self.comboDEGMeth, 4, 0, alignment=Qt.AlignmentFlag.AlignLeft)
+            self.layoutParam.addWidget(self.labelDEGMeth, 4, 1, alignment=Qt.AlignmentFlag.AlignLeft)
 
         else:
             labelScore = QLabel(f'Silhouette Score: {score[0]:.2f}')
             self.layoutParam.addWidget(labelScore, 0, 0)
-            self.layoutParam.addWidget(self.comboDEGMeth, 1, 0, alignment=Qt.AlignLeft)
-            self.layoutParam.addWidget(self.labelDEGMeth, 1, 1, alignment=Qt.AlignLeft)
+            self.layoutParam.addWidget(self.comboDEGMeth, 1, 0, alignment=Qt.AlignmentFlag.AlignLeft)
+            self.layoutParam.addWidget(self.labelDEGMeth, 1, 1, alignment=Qt.AlignmentFlag.AlignLeft)
 
         self.layoutParam.addItem(self.hspacer, 0, 2)
 

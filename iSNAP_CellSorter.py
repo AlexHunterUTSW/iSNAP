@@ -1,7 +1,7 @@
 import random
 import json
 import os
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QWidget, 
     QVBoxLayout, 
     QHBoxLayout,
@@ -9,12 +9,12 @@ from PyQt5.QtWidgets import (
     QLabel, 
     QGridLayout
 )
-from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtGui import QFont
+from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtGui import QFont
 
 class CellSortGame(QWidget):
     """
-    A single-cell sequencing themed minigame implemented using PyQt5.
+    A single-cell sequencing themed minigame implemented using PyQt6.
     Players click on 'diseased' cells as fast as possible.
     The game tracks elapsed time and saves the fastest time locally.
     """
@@ -58,15 +58,15 @@ class CellSortGame(QWidget):
 
         # Title
         title_label = QLabel("iSNAP is Loading...")
-        title_label.setFont(QFont("Inter", 24, QFont.Bold))
-        title_label.setAlignment(Qt.AlignCenter)
+        title_label.setFont(QFont("Inter", 24, QFont.Weight.Bold))
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setStyleSheet("color: #2d3748;") # gray-800
         main_layout.addWidget(title_label)
 
         # Instructions
         instructions_label = QLabel("Click on all the <span style='color:#ef4444; font-weight:600;'>mutated</span> nucleic acids as fast as you can!")
         instructions_label.setFont(QFont("Inter", 12))
-        instructions_label.setAlignment(Qt.AlignCenter)
+        instructions_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         instructions_label.setStyleSheet("color: #4a5568;") # gray-600
         main_layout.addWidget(instructions_label)
 
@@ -83,14 +83,14 @@ class CellSortGame(QWidget):
         """)
 
         self.timer_label = QLabel("Time Elapsed: <span style='color:#4f46e5;'>0.00</span>s")
-        self.timer_label.setFont(QFont("Inter", 14, QFont.DemiBold))
+        self.timer_label.setFont(QFont("Inter", 14, QFont.Weight.DemiBold))
         self.timer_label.setStyleSheet("color: #4a5568;") # gray-700
-        stats_layout.addWidget(self.timer_label, alignment=Qt.AlignLeft)
+        stats_layout.addWidget(self.timer_label, alignment=Qt.AlignmentFlag.AlignLeft)
 
         self.high_score_label = QLabel("Fastest Time: <span style='color:#4f46e5;'>N/A</span>")
-        self.high_score_label.setFont(QFont("Inter", 14, QFont.DemiBold))
+        self.high_score_label.setFont(QFont("Inter", 14, QFont.Weight.DemiBold))
         self.high_score_label.setStyleSheet("color: #4a5568;") # gray-700
-        stats_layout.addWidget(self.high_score_label, alignment=Qt.AlignRight)
+        stats_layout.addWidget(self.high_score_label, alignment=Qt.AlignmentFlag.AlignRight)
 
         main_layout.addWidget(stats_widget)
 
@@ -111,8 +111,8 @@ class CellSortGame(QWidget):
 
         # Message Box
         self.message_box = QLabel("")
-        self.message_box.setFont(QFont("Inter", 11, QFont.Medium))
-        self.message_box.setAlignment(Qt.AlignCenter)
+        self.message_box.setFont(QFont("Inter", 11, QFont.Weight.Medium))
+        self.message_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.message_box.setStyleSheet("""
             QLabel {
                 background-color: #dbeafe; /* Light blue */
@@ -126,7 +126,7 @@ class CellSortGame(QWidget):
 
         # Start/Retry Button
         self.start_button = QPushButton("Start Game")
-        self.start_button.setFont(QFont("Inter", 13, QFont.DemiBold))
+        self.start_button.setFont(QFont("Inter", 13, QFont.Weight.DemiBold))
         self.start_button.clicked.connect(self._start_game)
         self.start_button.setStyleSheet("""
             QPushButton {
@@ -263,7 +263,7 @@ class CellSortGame(QWidget):
 
             row = i // cols
             col = i % cols
-            self.cell_grid_layout.addWidget(cell_button, row, col, Qt.AlignCenter)
+            self.cell_grid_layout.addWidget(cell_button, row, col, Qt.AlignmentFlag.AlignCenter)
 
     def _get_cell_style(self, is_target=False, clicked_correct=False, clicked_incorrect=False):
         """

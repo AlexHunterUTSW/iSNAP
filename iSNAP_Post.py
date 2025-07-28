@@ -31,8 +31,8 @@ from matplotlib.lines import Line2D
 from adjustText import adjust_text
 
 print('- Importing PyQt...')
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtWidgets import (
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtWidgets import (
     QWidget, 
     QVBoxLayout,
     QHBoxLayout,
@@ -48,7 +48,7 @@ from PyQt5.QtWidgets import (
     QSizePolicy,
     QSpacerItem
 )
-from PyQt5.QtGui import QFont
+from PyQt6.QtGui import QFont
 
 #############
 # Functions #
@@ -186,7 +186,7 @@ class TypeSampleTable(QWidget):
         self.layoutMain =  QHBoxLayout()
         self.layoutSub = QVBoxLayout()
 
-        self.spacer = QSpacerItem(1, 5, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.spacer = QSpacerItem(1, 5, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         self.labelDGE = QLabel('DGE Analysis:')
         self.btnDGESamples = QPushButton('Compare Between Samples')
         self.btnDGESamples.clicked.connect(self.toDGESamples)
@@ -262,8 +262,8 @@ class DGEWindow(QWidget):
         self.layoutPVal = QHBoxLayout()
         self.layoutlogFC = QHBoxLayout()
 
-        self.vspacer = QSpacerItem(1, 1, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        self.hspacer =  QSpacerItem(1, 1, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.vspacer = QSpacerItem(1, 1, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        self.hspacer =  QSpacerItem(1, 1, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.labelGroupA = QLabel('Group A (Experimental Group)')
         self.labelGroupB = QLabel('Group B (Reference Group)')
@@ -287,18 +287,18 @@ class DGEWindow(QWidget):
         self.lineLogFC = QLineEdit('0.5')
 
         self.layoutParamLabel = QVBoxLayout()
-        self.layoutParamLabel.addWidget(self.labelDGEMethod, alignment=Qt.AlignLeft)
-        self.layoutParamLabel.addWidget(self.labelTopGenes, alignment=Qt.AlignLeft)
-        self.layoutParamLabel.addWidget(self.labelLabelGenes, alignment=Qt.AlignLeft)
-        self.layoutParamLabel.addWidget(self.labelPVal, alignment=Qt.AlignLeft)
-        self.layoutParamLabel.addWidget(self.labelLogFC, alignment=Qt.AlignLeft)
+        self.layoutParamLabel.addWidget(self.labelDGEMethod, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.layoutParamLabel.addWidget(self.labelTopGenes, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.layoutParamLabel.addWidget(self.labelLabelGenes, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.layoutParamLabel.addWidget(self.labelPVal, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.layoutParamLabel.addWidget(self.labelLogFC, alignment=Qt.AlignmentFlag.AlignLeft)
 
         self.layoutParamWidget = QVBoxLayout()
-        self.layoutParamWidget.addWidget(self.comboDGEMethod, alignment=Qt.AlignLeft)
-        self.layoutParamWidget.addWidget(self.lineTopGenes, alignment=Qt.AlignLeft)
-        self.layoutParamWidget.addWidget(self.lineLabelGenes, alignment=Qt.AlignLeft)
-        self.layoutParamWidget.addWidget(self.linePVal, alignment=Qt.AlignLeft)
-        self.layoutParamWidget.addWidget(self.lineLogFC, alignment=Qt.AlignLeft)
+        self.layoutParamWidget.addWidget(self.comboDGEMethod, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.layoutParamWidget.addWidget(self.lineTopGenes, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.layoutParamWidget.addWidget(self.lineLabelGenes, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.layoutParamWidget.addWidget(self.linePVal, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.layoutParamWidget.addWidget(self.lineLogFC, alignment=Qt.AlignmentFlag.AlignLeft)
 
         self.layoutParamAll = QHBoxLayout()
         self.layoutParamAll.addItem(self.hspacer)
@@ -353,31 +353,31 @@ class DGEWindow(QWidget):
 
         self.scrollMain.setWidget(self.groupMain)
         self.scrollMain.setWidgetResizable(True)
-        self.scrollMain.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.scrollMain.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.scrollGroupA.setWidget(self.groupGroupA)
         self.scrollGroupA.setWidgetResizable(True)
-        self.scrollGroupA.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.scrollGroupA.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.scrollGroupB.setWidget(self.groupGroupB)
         self.scrollGroupB.setWidgetResizable(True)
-        self.scrollGroupB.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.scrollGroupB.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
         # Set Layouts
 
-        self.layoutGroupA.addWidget(self.labelGroupA, alignment=Qt.AlignCenter)
-        self.layoutGroupA.addWidget(self.scrollGroupA, alignment=Qt.AlignCenter)
+        self.layoutGroupA.addWidget(self.labelGroupA, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.layoutGroupA.addWidget(self.scrollGroupA, alignment=Qt.AlignmentFlag.AlignCenter)
 
-        self.layoutGroupB.addWidget(self.labelGroupB, alignment=Qt.AlignCenter)
-        self.layoutGroupB.addWidget(self.scrollGroupB, alignment=Qt.AlignCenter)
+        self.layoutGroupB.addWidget(self.labelGroupB, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.layoutGroupB.addWidget(self.scrollGroupB, alignment=Qt.AlignmentFlag.AlignCenter)
 
         self.layoutGroups.addLayout(self.layoutGroupA)
         self.layoutGroups.addLayout(self.layoutGroupB)
 
-        self.layoutMain.addWidget(self.labelMain, alignment=Qt.AlignCenter)
-        self.layoutMain.addWidget(self.scrollMain, alignment=Qt.AlignCenter)
+        self.layoutMain.addWidget(self.labelMain, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.layoutMain.addWidget(self.scrollMain, alignment=Qt.AlignmentFlag.AlignCenter)
         self.layoutMain.addLayout(self.layoutGroups)
         self.layoutMain.addItem(self.vspacer)
         self.layoutMain.addLayout(self.layoutParamAll)
-        self.layoutMain.addWidget(self.btnDGE, alignment=Qt.AlignCenter)
+        self.layoutMain.addWidget(self.btnDGE, alignment=Qt.AlignmentFlag.AlignCenter)
 
         self.setLayout(self.layoutMain)
 
@@ -484,7 +484,7 @@ class FinishedWidget(QWidget):
         
         self.layoutMain = QVBoxLayout()
 
-        vspacer = QSpacerItem(1, 1, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        vspacer = QSpacerItem(1, 1, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         labelThanks = QLabel('Thank you for using iSNAP!')
         labelThanks.setStyleSheet('font-size: 24px;')

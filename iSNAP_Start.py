@@ -54,8 +54,8 @@ from scanpy.plotting.palettes import default_102
 
 
 print('- Importing PyQt...')
-from PyQt5.QtCore import QCoreApplication, Qt, QObject, QThread, pyqtSignal
-from PyQt5.QtWidgets import (
+from PyQt6.QtCore import QCoreApplication, Qt, QObject, QThread, pyqtSignal
+from PyQt6.QtWidgets import (
     QApplication,
     QVBoxLayout,
     QHBoxLayout,
@@ -71,7 +71,7 @@ from PyQt5.QtWidgets import (
 )
 from qt_material import apply_stylesheet
 
-from PyQt5.QtGui import QFont, QIcon
+from PyQt6.QtGui import QFont, QIcon
 
 print('\nImporting Input Packages')
 from iSNAP_Input import SetModality, FileFinder
@@ -145,7 +145,7 @@ class MainWindow(QWidget):
             self.toWorkerCluster.connect(self.worker.toCluster)
             self.toWorkerAnnotate.connect(self.worker.toAnnotate)
             self.worker.toNextpgSet.connect(self.setNextpg)
-            self.worker.skipSignal.connect(skipToCelltype)
+            self.worker.skipSignal.connect(self.createSkipWindow)
             self.worker.toClusterSignal.connect(self.toClusterSetPage)
             self.worker.toAnnotateSignal.connect(self.toAnnotateSetPage)
             self.worker.initiateFeatureSignal.connect(self.createFeatureMap)
@@ -198,7 +198,7 @@ class MainWindow(QWidget):
 
             # Create Stacked Widget
             self.stackedWidget = QStackedWidget()
-            self.stackedWidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+            self.stackedWidget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
             
             # Add Pages
             self.stackedWidget.addWidget(self.page0)
@@ -246,7 +246,7 @@ class MainWindow(QWidget):
             self.tabPage = []
             for i in range(len(self.prepPageNames)):
                 self.tabPage.append(TabButton(self, self.prepPageNames[i], i))
-                spacer = QSpacerItem(20, 1, QSizePolicy.Minimum, QSizePolicy.Minimum)
+                spacer = QSpacerItem(20, 1, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
                 layoutLine=QHBoxLayout()
                 layoutLine.addWidget(self.tabPage[i])
                 layoutLine.addItem(spacer)
@@ -254,7 +254,7 @@ class MainWindow(QWidget):
                 self.layoutPages.addLayout(layoutLine)
             for i in range(len(self.subPageNames)):
                 self.tabPage.append(TabButton(self, self.subPageNames[i], i+len(self.prepPageNames)))
-                spacer = QSpacerItem(20, 1, QSizePolicy.Minimum, QSizePolicy.Minimum)
+                spacer = QSpacerItem(20, 1, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
                 layoutLine=QHBoxLayout()
                 layoutLine.addItem(spacer)
                 layoutLine.addWidget(self.tabPage[i+len(self.prepPageNames)])
@@ -264,7 +264,7 @@ class MainWindow(QWidget):
 
             for i in range(len(self.endPageNames)):
                 self.tabPage.append(TabButton(self, self.endPageNames[i], i+len(self.prepPageNames)+len(self.subPageNames)))
-                spacer = QSpacerItem(20, 1, QSizePolicy.Minimum, QSizePolicy.Minimum)
+                spacer = QSpacerItem(20, 1, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
                 layoutLine=QHBoxLayout()
                 layoutLine.addWidget(self.tabPage[i+len(self.prepPageNames)+len(self.subPageNames)])
                 layoutLine.addItem(spacer)
@@ -277,8 +277,8 @@ class MainWindow(QWidget):
             self.scrollNav = QScrollArea()
             self.scrollNav.setWidget(self.groupNav)
             self.scrollNav.setWidgetResizable(True)
-            self.scrollNav.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-            self.scrollNav.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+            self.scrollNav.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+            self.scrollNav.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
 
             self.mainPageCount = self.stackedWidget.count()
             self.setProgress()
@@ -297,14 +297,14 @@ class MainWindow(QWidget):
             self.checkDarkmode = QCheckBox('Dark Mode')
             self.checkDarkmode.toggled.connect(self.setDarkmode)
 
-            hspacer =  QSpacerItem(1, 1, QSizePolicy.Expanding, QSizePolicy.Minimum)
+            hspacer =  QSpacerItem(1, 1, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
             
             # Layout
-            self.btn_box.addWidget(self.back_btn, alignment=Qt.AlignLeft) 
-            self.btn_box.addWidget(self.checkDarkmode, alignment=Qt.AlignLeft)
+            self.btn_box.addWidget(self.back_btn, alignment=Qt.AlignmentFlag.AlignLeft) 
+            self.btn_box.addWidget(self.checkDarkmode, alignment=Qt.AlignmentFlag.AlignLeft)
             self.btn_box.addItem(hspacer)
             self.btn_box.addWidget(self.save_btn)
-            self.btn_box.addWidget(self.next_btn, alignment=Qt.AlignRight)
+            self.btn_box.addWidget(self.next_btn, alignment=Qt.AlignmentFlag.AlignRight)
 
             self.save_btn.hide()
             
@@ -321,6 +321,9 @@ class MainWindow(QWidget):
 
             self.thread.start()
         
+        def createSkipWindow(self):
+            self.skipWindow = skipToCelltype()
+        
         def setDarkmode(self):
             if self.checkDarkmode.isChecked():
                 apply_stylesheet(app, theme='dark_blue.xml')
@@ -329,6 +332,8 @@ class MainWindow(QWidget):
 
         def createDGE(self, bySamples, mainItems, groupItems):
             try:
+                if hasattr(self, 'DGEWindow'):
+                    delattr(self, 'DGEWindow')
                 self.DGEWindow = DGEWindow(bySamples, mainItems, groupItems)
                 self.DGEWindow.toVolcanoSignal.connect(self.worker.toVolcano)
                 print('Done!')
@@ -337,6 +342,8 @@ class MainWindow(QWidget):
         
         def createVol(self, figVol):
             try:
+                if hasattr(self, 'volWindow'):
+                    delattr(self, 'volWindow')
                 self.volWindow = VolcanoPlot(figVol)
                 self.DGEWindow.btnDGE.setEnabled(True)
             except Exception as e:
@@ -843,7 +850,6 @@ class MainWindow(QWidget):
 
             # Page 0 Logic: Set Data Source
             elif currentPage == 0:
-
                 self.page1.setPage(inputSetPage['modality'])
                 
                 self.stackedWidget.setCurrentIndex(currentPage+1)
@@ -1614,7 +1620,7 @@ class MainWorker(QObject):
 
                         log.writelines(lines)
 
-                    save_adatas(self.adatasWhole.copy(), self.paramDict['output_path'], suffix='Initial')
+                    # save_adatas(self.adatasWhole.copy(), self.paramDict['output_path'], suffix='Initial')
                 
                 size = 240000/self.adatasWhole.n_obs
                 figUMAP = pltumap(self.adatasWhole.copy(), show=False, color="celltype", frameon = False, palette=default_102, size=size, title='Cell Type', return_fig=True)
@@ -2049,8 +2055,8 @@ class skipToCelltype(QWidget):
             self.btnGoToCellType = QPushButton('Continue')
             self.btnGoToCellType.clicked.connect(lambda: self.skipTo(True))
 
-            self.layoutBtn.addWidget(self.btnInitiate, alignment = Qt.AlignLeft)
-            self.layoutBtn.addWidget(self.btnGoToCellType, alignment = Qt.AlignRight)
+            self.layoutBtn.addWidget(self.btnInitiate, alignment = Qt.AlignmentFlag.AlignLeft)
+            self.layoutBtn.addWidget(self.btnGoToCellType, alignment = Qt.AlignmentFlag.AlignRight)
 
             self.layoutMain.addWidget(self.labelChoice)
             self.layoutMain.addLayout(self.layoutBtn)
@@ -2073,12 +2079,25 @@ app = QCoreApplication.instance()
 if app is None:
     app = QApplication(argv)
 apply_stylesheet(app, theme='light_blue.xml', invert_secondary=True)
+qss_for_dropdown = """
+        QComboBox {
+            /* Example: Restore some desired padding for the selected text in the main box */
+            padding-right: 32px; /* Make space for the dropdown arrow if it's too close */
+            /* Add any other desired styling for the main combo box */
+        }
+        QComboBox::drop-down{
+        border-left: 0px;
+        padding-left: 0px;
+        }
+        
+        """
+app.setStyleSheet(app.styleSheet()+qss_for_dropdown)
 font = QFont()
 font.setPointSize(12)
 app.setFont(font)
 window = MainWindow()
 window.show()
 print('\niSNAP window was created.\n')
-app.exec_()
+app.exec()
 
 print('\nGood bye, iSNAP.')
