@@ -208,6 +208,11 @@ class TypeSampleTable(QWidget):
     
     def setPage(self, sampleTypeMtx, samples, types):
         self.tableTypeSample = QTableWidget()
+        
+        if len(samples) < 3:
+            self.btnDGESamples.setEnabled(False)
+        else:
+            self.btnDGESamples.setEnabled(True)
 
         self.tableTypeSample.setColumnCount(len(samples))
         self.tableTypeSample.setRowCount(len(types))
@@ -241,10 +246,8 @@ class TypeSampleTable(QWidget):
 
 class DGEWindow(QWidget):
     toVolcanoSignal = pyqtSignal(list, list, list, bool, str, int, list, float, float)
-    def __init__(self, bySamples, mainItems, groupItems):
+    def __init__(self):
         super().__init__()
-
-        self.compSamples = bySamples
 
         self.setWindowTitle("iSNAP - DGE Analysis")
         self.setGeometry(100, 100, 1280, 720)
@@ -256,67 +259,83 @@ class DGEWindow(QWidget):
         self.layoutMainItems = QVBoxLayout()
         self.layoutGroupAItems = QVBoxLayout()
         self.layoutGroupBItems = QVBoxLayout()
-        self.layoutMethod = QHBoxLayout()
-        self.layoutTopGenes = QHBoxLayout()
-        self.layoutLabelGenes = QHBoxLayout()
-        self.layoutPVal = QHBoxLayout()
-        self.layoutlogFC = QHBoxLayout()
+        self.layoutParamLabel = QVBoxLayout()
+        self.layoutParamWidget = QVBoxLayout()
+        self.layoutParamAll = QHBoxLayout()
 
-        self.vspacer = QSpacerItem(1, 1, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-        self.hspacer =  QSpacerItem(1, 1, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.setLayout(self.layoutMain)
 
-        self.labelGroupA = QLabel('Group A (Experimental Group)')
-        self.labelGroupB = QLabel('Group B (Reference Group)')
+        self.show()
 
-        self.labelDGEMethod = QLabel('Select Statistical Test:')
+    def setPage(self, bySamples, mainItems, groupItems, again=False):
+        self.compSamples = bySamples
+        
+        if again:
+            for i in range(len(self.checksGroupA)):
+                self.checksGroupA[i].entangledSignal.disconnect()
+                self.checksGroupB[i].entangledSignal.disconnect()
+
+            self.clearLayout(self.layoutMainItems)
+            self.clearLayout(self.layoutGroupAItems)
+            self.clearLayout(self.layoutGroupBItems)
+
+        vspacer = QSpacerItem(1, 1, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        hspacer =  QSpacerItem(1, 1, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        labelGroupA = QLabel('Group A (Experimental Group)')
+        labelGroupB = QLabel('Group B (Reference Group)')
+
+        labelDGEMethod = QLabel('Select Statistical Test:')
         self.comboDGEMethod = QComboBox()
         self.comboDGEMethod.addItem('wilcoxon')
         self.comboDGEMethod.addItem('t-test')
         self.comboDGEMethod.addItem('t-test_overestim_var')
 
-        self.labelTopGenes = QLabel('Number of Genes to Label')
-        self.lineTopGenes = QLineEdit('10')
-
-        self.labelLabelGenes = QLabel('Label Genes (ex: gene1, gene2, ...)')
-        self.lineLabelGenes = QLineEdit()
-
-        self.labelPVal = QLabel('PVal Adj Threshold')
-        self.linePVal = QLineEdit('10e-6')
-
-        self.labelLogFC = QLabel('LogFC Threshold')
-        self.lineLogFC = QLineEdit('0.5')
-
-        self.layoutParamLabel = QVBoxLayout()
-        self.layoutParamLabel.addWidget(self.labelDGEMethod, alignment=Qt.AlignmentFlag.AlignLeft)
-        self.layoutParamLabel.addWidget(self.labelTopGenes, alignment=Qt.AlignmentFlag.AlignLeft)
-        self.layoutParamLabel.addWidget(self.labelLabelGenes, alignment=Qt.AlignmentFlag.AlignLeft)
-        self.layoutParamLabel.addWidget(self.labelPVal, alignment=Qt.AlignmentFlag.AlignLeft)
-        self.layoutParamLabel.addWidget(self.labelLogFC, alignment=Qt.AlignmentFlag.AlignLeft)
-
-        self.layoutParamWidget = QVBoxLayout()
-        self.layoutParamWidget.addWidget(self.comboDGEMethod, alignment=Qt.AlignmentFlag.AlignLeft)
-        self.layoutParamWidget.addWidget(self.lineTopGenes, alignment=Qt.AlignmentFlag.AlignLeft)
-        self.layoutParamWidget.addWidget(self.lineLabelGenes, alignment=Qt.AlignmentFlag.AlignLeft)
-        self.layoutParamWidget.addWidget(self.linePVal, alignment=Qt.AlignmentFlag.AlignLeft)
-        self.layoutParamWidget.addWidget(self.lineLogFC, alignment=Qt.AlignmentFlag.AlignLeft)
-
-        self.layoutParamAll = QHBoxLayout()
-        self.layoutParamAll.addItem(self.hspacer)
-        self.layoutParamAll.addLayout(self.layoutParamLabel)
-        self.layoutParamAll.addLayout(self.layoutParamWidget)
-        self.layoutParamAll.addItem(self.hspacer)
-
-
         
-        self.btnDGE = QPushButton('Confirm')
-        self.btnDGE.clicked.connect(self.toVolcano)
 
-        if bySamples:
-            self.labelMain = QLabel('Choose Cell Types to Use')
+        if not again:
+            labelTopGenes = QLabel('Number of Genes to Label')
+            self.lineTopGenes = QLineEdit('10')
 
-        else:
-            self.labelMain = QLabel('Choose Samples to Use')
+            labelLabelGenes = QLabel('Label Genes (ex: gene1, gene2, ...)')
+            self.lineLabelGenes = QLineEdit()
+
+            labelPVal = QLabel('PVal Adj Threshold')
+            self.linePVal = QLineEdit('10e-6')
+
+            labelLogFC = QLabel('LogFC Threshold')
+            self.lineLogFC = QLineEdit('0.5')
+            self.layoutParamLabel.addWidget(labelDGEMethod, alignment=Qt.AlignmentFlag.AlignLeft)
+            self.layoutParamLabel.addWidget(labelTopGenes, alignment=Qt.AlignmentFlag.AlignLeft)
+            self.layoutParamLabel.addWidget(labelLabelGenes, alignment=Qt.AlignmentFlag.AlignLeft)
+            self.layoutParamLabel.addWidget(labelPVal, alignment=Qt.AlignmentFlag.AlignLeft)
+            self.layoutParamLabel.addWidget(labelLogFC, alignment=Qt.AlignmentFlag.AlignLeft)
+        
+            self.layoutParamWidget.addWidget(self.comboDGEMethod, alignment=Qt.AlignmentFlag.AlignLeft)
+            self.layoutParamWidget.addWidget(self.lineTopGenes, alignment=Qt.AlignmentFlag.AlignLeft)
+            self.layoutParamWidget.addWidget(self.lineLabelGenes, alignment=Qt.AlignmentFlag.AlignLeft)
+            self.layoutParamWidget.addWidget(self.linePVal, alignment=Qt.AlignmentFlag.AlignLeft)
+            self.layoutParamWidget.addWidget(self.lineLogFC, alignment=Qt.AlignmentFlag.AlignLeft)
             
+            self.layoutParamAll.addItem(hspacer)
+            self.layoutParamAll.addLayout(self.layoutParamLabel)
+            self.layoutParamAll.addLayout(self.layoutParamWidget)
+            self.layoutParamAll.addItem(hspacer)
+        
+            self.btnDGE = QPushButton('Confirm')
+            self.btnDGE.clicked.connect(self.toVolcano)
+
+            if bySamples:
+                self.labelMain = QLabel('Choose Cell Types to Use')
+
+            else:
+                self.labelMain = QLabel('Choose Samples to Use')
+        else:
+            if bySamples:
+                self.labelMain.setText('Choose Cell Types to Use')
+
+            else:
+                self.labelMain.setText('Choose Samples to Use')
 
         self.checksMain = []
         
@@ -338,50 +357,50 @@ class DGEWindow(QWidget):
             self.checksGroupB[i].entangledSignal.connect(self.disableOtherCheck)
             self.checksGroupB[i].toggled.connect(self.checksGroupB[i].entangleFunc)
             self.layoutGroupBItems.addWidget(self.checksGroupB[i])
-
-        self.groupMain = QGroupBox()
-        self.groupGroupA = QGroupBox()
-        self.groupGroupB = QGroupBox()
         
-        self.groupMain.setLayout(self.layoutMainItems)
-        self.groupGroupA.setLayout(self.layoutGroupAItems)
-        self.groupGroupB.setLayout(self.layoutGroupBItems)
+        if not again:
+            self.groupMain = QGroupBox()
+            self.groupGroupA = QGroupBox()
+            self.groupGroupB = QGroupBox()
+            self.groupMain.setLayout(self.layoutMainItems)
+            self.groupGroupA.setLayout(self.layoutGroupAItems)
+            self.groupGroupB.setLayout(self.layoutGroupBItems)
 
-        self.scrollMain = QScrollArea()
-        self.scrollGroupA = QScrollArea()
-        self.scrollGroupB = QScrollArea()
+            self.scrollMain = QScrollArea()
+            self.scrollGroupA = QScrollArea()
+            self.scrollGroupB = QScrollArea()
 
-        self.scrollMain.setWidget(self.groupMain)
-        self.scrollMain.setWidgetResizable(True)
-        self.scrollMain.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.scrollGroupA.setWidget(self.groupGroupA)
-        self.scrollGroupA.setWidgetResizable(True)
-        self.scrollGroupA.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.scrollGroupB.setWidget(self.groupGroupB)
-        self.scrollGroupB.setWidgetResizable(True)
-        self.scrollGroupB.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+            self.scrollMain.setWidget(self.groupMain)
+            self.scrollMain.setWidgetResizable(True)
+            self.scrollMain.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+            self.scrollGroupA.setWidget(self.groupGroupA)
+            self.scrollGroupA.setWidgetResizable(True)
+            self.scrollGroupA.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+            self.scrollGroupB.setWidget(self.groupGroupB)
+            self.scrollGroupB.setWidgetResizable(True)
+            self.scrollGroupB.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
-        # Set Layouts
+            # Set Layouts
+            self.layoutGroupA.addWidget(labelGroupA, alignment=Qt.AlignmentFlag.AlignCenter)
+            self.layoutGroupA.addWidget(self.scrollGroupA, alignment=Qt.AlignmentFlag.AlignCenter)
+            self.layoutGroupB.addWidget(labelGroupB, alignment=Qt.AlignmentFlag.AlignCenter)
+            self.layoutGroupB.addWidget(self.scrollGroupB, alignment=Qt.AlignmentFlag.AlignCenter)
+            self.layoutGroups.addLayout(self.layoutGroupA)
+            self.layoutGroups.addLayout(self.layoutGroupB)
+            self.layoutMain.addWidget(self.labelMain, alignment=Qt.AlignmentFlag.AlignCenter)
+            self.layoutMain.addWidget(self.scrollMain, alignment=Qt.AlignmentFlag.AlignCenter)
+            self.layoutMain.addLayout(self.layoutGroups)
+            self.layoutMain.addItem(vspacer)
+            self.layoutMain.addLayout(self.layoutParamAll)
+            self.layoutMain.addWidget(self.btnDGE, alignment=Qt.AlignmentFlag.AlignCenter)
+        else:
+            self.groupMain.adjustSize()
+            self.groupGroupA.adjustSize()
+            self.groupGroupB.adjustSize()
+            self.scrollMain.adjustSize()
+            self.scrollGroupA.adjustSize()
+            self.scrollGroupB.adjustSize()
 
-        self.layoutGroupA.addWidget(self.labelGroupA, alignment=Qt.AlignmentFlag.AlignCenter)
-        self.layoutGroupA.addWidget(self.scrollGroupA, alignment=Qt.AlignmentFlag.AlignCenter)
-
-        self.layoutGroupB.addWidget(self.labelGroupB, alignment=Qt.AlignmentFlag.AlignCenter)
-        self.layoutGroupB.addWidget(self.scrollGroupB, alignment=Qt.AlignmentFlag.AlignCenter)
-
-        self.layoutGroups.addLayout(self.layoutGroupA)
-        self.layoutGroups.addLayout(self.layoutGroupB)
-
-        self.layoutMain.addWidget(self.labelMain, alignment=Qt.AlignmentFlag.AlignCenter)
-        self.layoutMain.addWidget(self.scrollMain, alignment=Qt.AlignmentFlag.AlignCenter)
-        self.layoutMain.addLayout(self.layoutGroups)
-        self.layoutMain.addItem(self.vspacer)
-        self.layoutMain.addLayout(self.layoutParamAll)
-        self.layoutMain.addWidget(self.btnDGE, alignment=Qt.AlignmentFlag.AlignCenter)
-
-        self.setLayout(self.layoutMain)
-
-        self.show()
 
     def toVolcano(self):
         try:
@@ -427,7 +446,7 @@ class DGEWindow(QWidget):
 
         except Exception as e:
             print(e)
-
+    
     def disableOtherCheck(self, index, isChecked, isA):
         if isA:
             if isChecked:
@@ -439,6 +458,16 @@ class DGEWindow(QWidget):
                 self.checksGroupA[index].setEnabled(False)
             else:
                 self.checksGroupA[index].setEnabled(True)
+        
+    def clearLayout(self, layout):
+        while layout.count():
+            child = layout.takeAt(0)
+            if child.widget():
+                child.widget().setParent(None)
+
+    def closeEvent(self, event):
+        event.ignore()  # Ignore the default close event
+        self.hide()
 
 # Custom Button for DGE window
 class EntangledCheckBox(QCheckBox):

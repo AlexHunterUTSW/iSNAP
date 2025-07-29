@@ -372,8 +372,11 @@ class UMAPCellType(QWidget):
         self.UMAPCellType.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         self.comboType = QComboBox()
+        self.comboType.setMaximumWidth(300)
         self.comboComb1 = QComboBox()
+        self.comboComb1.setMaximumWidth(150)
         self.comboComb2 = QComboBox()
+        self.comboComb2.setMaximumWidth(150)
         self.lineComb = QLineEdit()
         
 

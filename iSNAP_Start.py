@@ -1,6 +1,6 @@
 print('Welcome to iSNAP!\n')
 print('Importing Essential Packages...')
-
+import time
 print('- Importing sys...')
 from sys import (
     exit,
@@ -113,6 +113,7 @@ from iSNAP_Post import (
     dgetoCSV, 
     plotVolcano
     ) 
+
 
 from iSNAP_CellSorter import CellSortGame
 
@@ -332,18 +333,21 @@ class MainWindow(QWidget):
 
         def createDGE(self, bySamples, mainItems, groupItems):
             try:
-                if hasattr(self, 'DGEWindow'):
-                    delattr(self, 'DGEWindow')
-                self.DGEWindow = DGEWindow(bySamples, mainItems, groupItems)
-                self.DGEWindow.toVolcanoSignal.connect(self.worker.toVolcano)
+                if not hasattr(self, 'DGEWindow'):
+                    self.DGEWindow = DGEWindow()
+                    self.DGEWindow.setPage(bySamples, mainItems, groupItems)
+                    self.DGEWindow.toVolcanoSignal.connect(self.worker.toVolcano)
+                else:
+                    self.DGEWindow.setPage(bySamples, mainItems, groupItems, again=True)
+                    self.DGEWindow.show()
+                
+                
                 print('Done!')
             except Exception as e:
                 print(e)
         
         def createVol(self, figVol):
             try:
-                if hasattr(self, 'volWindow'):
-                    delattr(self, 'volWindow')
                 self.volWindow = VolcanoPlot(figVol)
                 self.DGEWindow.btnDGE.setEnabled(True)
             except Exception as e:
@@ -1491,7 +1495,7 @@ class MainWorker(QObject):
                     ]
                     lines = [
                         f'Page 11: Leiden Parameters ({self.paramDict["chosenType"]})\n',
-                        f'Test Resolution = {self.paramDict['resListSub'][0]}\n\n',
+                        f'Test Resolution = {self.paramDict["resListSub"][0]}\n\n',
                     ]
                 else:
                     self.leidenListSub = [
@@ -1501,9 +1505,9 @@ class MainWorker(QObject):
                         ]
                     lines = [
                         f'Page 11: Leiden Parameters ({self.paramDict["chosenType"]})\n',
-                        f'Test Resolution 1 = {self.paramDict['resListSub'][0]}\n',
-                        f'Test Resolution 2 = {self.paramDict['resListSub'][1]}\n',
-                        f'Test Resolution 3 = {self.paramDict['resListSub'][2]}\n\n',
+                        f'Test Resolution 1 = {self.paramDict["resListSub"][0]}\n',
+                        f'Test Resolution 2 = {self.paramDict["resListSub"][1]}\n',
+                        f'Test Resolution 3 = {self.paramDict["resListSub"][2]}\n\n',
                     ]
 
                 with open(join(self.paramDict['output_path'], 'iSNAP User Log.txt'), 'a+') as log:
@@ -1525,7 +1529,7 @@ class MainWorker(QObject):
                     silhouetteScore.append(silhouetteLeiden(adatasLeiden))
 
                     size = 240000/adatasLeiden.n_obs
-                    figUMAPList.append(pltumap(adatasLeiden, show=False, color="leiden", frameon = False, palette=default_102, title=f'Resolution {self.paramDict['resListSub'][i]}, {suffix}', size=size, return_fig=True))
+                    figUMAPList.append(pltumap(adatasLeiden, show=False, color="leiden", frameon = False, palette=default_102, title=f'Resolution {self.paramDict["resListSub"][i]}, {suffix}', size=size, return_fig=True))
                     figUMAPList[i].set_constrained_layout(True)
 
                     figUMAPList[i].savefig(join(outpath, f'Leiden Resolution {self.paramDict["resListSub"][i]}.png'))
@@ -1546,7 +1550,7 @@ class MainWorker(QObject):
                 with open(join(self.paramDict['output_path'], 'iSNAP User Log.txt'), 'a+') as log:
 
                     lines = [
-                        f'Page 10: Integration & UMAP Projection ({self.paramDict['chosenType']})\n',
+                        f'Page 10: Integration & UMAP Projection ({self.paramDict["chosenType"]})\n',
                         f'Number of PCs = {self.paramDict["NPCSub"]}\n',
                         f'Number of nNeigh = {self.paramDict["nNeighSub"]}\n',
                         f'Integration Method = {self.paramDict["intMethod"]}\n\n',
@@ -1708,7 +1712,7 @@ class MainWorker(QObject):
 
                     lines = [
                         'Page 6: Choose Leiden Clustering\n',
-                        f'Chosen Resolution = {self.paramDict['resList'][self.paramDict["chosenRes"]]}\n',
+                        f'Chosen Resolution = {self.paramDict["resList"][self.paramDict["chosenRes"]]}\n',
                         f'Number of Clusters = {len(set(self.adatasWhole.obs["leiden"]))}\n'
                         f'DEG Statistical Method = {self.paramDict["DEGMethod"]}\n\n'
                     ]
@@ -1755,7 +1759,7 @@ class MainWorker(QObject):
                     ]
                     lines = [
                         'Page 5: Leiden Parameters\n',
-                        f'Test Resolution = {self.paramDict['resList'][0]}\n\n',
+                        f'Test Resolution = {self.paramDict["resList"][0]}\n\n',
                     ]
                 else:
                     self.leidenList = [
@@ -1766,9 +1770,9 @@ class MainWorker(QObject):
 
                     lines = [
                         'Page 5: Leiden Parameters\n',
-                        f'Test Resolution 1 = {self.paramDict['resList'][0]}\n',
-                        f'Test Resolution 2 = {self.paramDict['resList'][1]}\n',
-                        f'Test Resolution 3 = {self.paramDict['resList'][2]}\n\n',
+                        f'Test Resolution 1 = {self.paramDict["resList"][0]}\n',
+                        f'Test Resolution 2 = {self.paramDict["resList"][1]}\n',
+                        f'Test Resolution 3 = {self.paramDict["resList"][2]}\n\n',
                     ]
 
                 with open(join(self.paramDict['output_path'], 'iSNAP User Log.txt'), 'a+') as log:
@@ -1790,7 +1794,7 @@ class MainWorker(QObject):
                     silhouetteScore.append(silhouetteLeiden(adatasLeiden))
 
                     size = 240000/adatasLeiden.n_obs
-                    figUMAPList.append(pltumap(adatasLeiden, show=False, color="leiden", frameon = False, palette=default_102, title=f'Resolution {self.paramDict['resList'][i]}, {suffix}', return_fig=True))
+                    figUMAPList.append(pltumap(adatasLeiden, show=False, color="leiden", frameon = False, palette=default_102, title=f'Resolution {self.paramDict["resList"][i]}, {suffix}', return_fig=True))
                     figUMAPList[i].set_constrained_layout(True)
 
                     figUMAPList[i].savefig(join(outpath, f'Leiden Resolution {self.paramDict["resList"][i]}.png'))
@@ -1813,9 +1817,9 @@ class MainWorker(QObject):
 
                     lines = [
                         'Page 4: Integration & UMAP Projection\n',
-                        f'Number of PCs = {self.paramDict['NPC']}\n',
-                        f'Number of nNeigh = {self.paramDict['nNeigh']}\n',
-                        f'Integration Method = {self.paramDict['intMethod']}\n\n',
+                        f'Number of PCs = {self.paramDict["NPC"]}\n',
+                        f'Number of nNeigh = {self.paramDict["nNeigh"]}\n',
+                        f'Integration Method = {self.paramDict["intMethod"]}\n\n',
                     ]
                     log.writelines(lines)
             
@@ -2089,7 +2093,6 @@ qss_for_dropdown = """
         border-left: 0px;
         padding-left: 0px;
         }
-        
         """
 app.setStyleSheet(app.styleSheet()+qss_for_dropdown)
 font = QFont()
