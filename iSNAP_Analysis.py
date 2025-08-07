@@ -55,7 +55,6 @@ def deg(adatas, DEGmethod):
     print('Ranking DEG for each cluster...')
     rank_genes_groups(adatas, groupby='leiden', method=DEGmethod, key_added='DEG', use_raw=False)
     adatas.uns['DEGMethod'] = DEGmethod
-    return adatas
 
 def degtoCSV(adatas, output_folder, DEGmethod, suffix='Initial'):
     # Extract results
@@ -97,43 +96,40 @@ def degtoCSV(adatas, output_folder, DEGmethod, suffix='Initial'):
         makedirs(outpath)
     deg_table.to_csv(join(outpath, f'DEGTable {suffix}.csv'), index=False)
 
-def specificClusterUMAP(adatas, focusType, key='celltype', suffix = ''):
-    clusterMask = adatas.obs[key].copy() == focusType
-    adatas.obs['clusterMask'] = clusterMask
+def specificClusterUMAP(adatas, focusType, key='cell_type', suffix = ''):
+    clusterMask = adatas.obs[key] == focusType
     size = 240000/adatas.n_obs
-    figUMAP = pltumap(adatas, show=False, color=key, mask_obs="clusterMask", title=f'{focusType}, {suffix}', legend_loc='none', frameon=False, palette=default_102, size=size, return_fig=True)
+    figUMAP = pltumap(adatas, show=False, color=key, mask_obs=clusterMask, title=f'{focusType}, {suffix}', legend_loc='none', frameon=False, palette=default_102, size=size, return_fig=True)
 
     pltclose('all')
 
     return figUMAP
     
-def leidenToCellType(adatas, cellTypes, column='celltype'):
-    clusters = adatas.uns['DEG']['names'].copy().dtype.names
+def leidenToCellType(adatas, cellTypes, column='cell_type'):
+    clusters = adatas.uns['DEG']['names'].dtype.names
     if len(clusters) == len(cellTypes):
         cellTypeMap = {}
         for i in range(len(clusters)):
             cellTypeMap[clusters[i]] = cellTypes[i]
             
-        if 'celltype' in adatas.obs.columns and column=='celltype':
+        if 'cell_type' in adatas.obs.columns and column=='cell_type':
             j=1
             while f'celltypeBackup{j}' in adatas.obs.columns:
                 j += 1
-            adatas.obs[f'celltypeBackup{j}'] = adatas.obs['celltype'].copy()
+            adatas.obs[f'celltypeBackup{j}'] = adatas.obs['cell_type']
         
         adatas.obs[column] = adatas.obs['leiden'].copy().map(cellTypeMap).astype('category')
 
     else:
         raise ValueError('Leiden and Annotations Misaligned.')
-    
-    return adatas
 
 def typeToCSV(adatas, groupKey, suffix, outfolder):
     savePathOut = join(outfolder, 'Xenium Labels', suffix)
     if not pathexists(savePathOut):
         makedirs(savePathOut)
-    for sample in adatas.obs['sample'].copy().cat.categories:
+    for sample in adatas.obs['sample'].cat.categories:
         print(f'Exporting {sample} labels...')
-        adatasSample = adatas[adatas.obs['sample']==sample].copy()
+        adatasSample = adatas[adatas.obs['sample']==sample]
         type_df = DataFrame({
             'cell_id': adatasSample.obs['cell_id'], # Cell Barcode
             'group': adatasSample.obs[groupKey] # Cell Type Annotations
@@ -249,6 +245,8 @@ class AnnotateCluster(QWidget):
         self.layoutSub.addWidget(self.comboCluster)
         self.layoutSub.addWidget(self.btnAnnotate)
         self.layoutSub.addItem(self.spacer)
+
+        self.comboCluster.setMaximumWidth(300)
 
         self.clearLayout(self.layoutUMAP)
         self.layoutUMAP.addWidget(self.UMAPAnnotate)
@@ -387,7 +385,7 @@ class UMAPCellType(QWidget):
             self.comboComb2.addItem(celltypes[i])    
         
         self.btnSpatial = QPushButton('Save Xenium Labels')
-        self.btnSpatial.clicked.connect(lambda: self.typeToCSVSignal.emit(True, 'celltype', 'Cell Types'))
+        self.btnSpatial.clicked.connect(lambda: self.typeToCSVSignal.emit(True, 'cell_type', 'Cell Types'))
 
         pltclose('all')
         self.clearLayout(self.layoutCombsub)
@@ -442,6 +440,7 @@ class FeatureMap(QWidget):
     def __init__(self, UMAP, genesList, isMain):
         super().__init__()
         self.setWindowTitle("iSNAP - Feature Maps")
+        self.setGeometry(200, 200, 1280, 720)
 
         # Add to Figure for each leiden resolution & Page
         figUMAP = FigureCanvasQTAgg(UMAP)

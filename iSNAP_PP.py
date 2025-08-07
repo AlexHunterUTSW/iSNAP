@@ -32,7 +32,7 @@ from scanpy.external.pp import harmony_integrate
 print('- Importing Scrublet...')
 from scrublet import Scrublet
 
-print('- Importing sklearn')
+print('- Importing sklearn...')
 from sklearn.metrics import silhouette_score
 
 print('- Importing Scipy')
@@ -93,7 +93,7 @@ def calc_qc_metrics(adatas):
 
     return adatas
 
-def quality_control(adatas, min_cells, min_genes, perMt, perRib, seed, scrublet, output_folder):
+def quality_control(adatas, min_cells, min_genes, perMt, perRib, seed, scrublet):
     """
     Calculates quality control metrics and filters transcriptomic dataset.
 
@@ -107,13 +107,8 @@ def quality_control(adatas, min_cells, min_genes, perMt, perRib, seed, scrublet,
     Returns:
         obs: Quality controlled transcriptomic data.
     """
-    # Initial cell ids so that removed cells can be documented in Filtered_Cells.csv
-    adatasRaw = adatas.copy()
-    initial_cells = adatasRaw.obs_names.copy()
-
     if scrublet == True:
         # Use raw counts if available (Scrublet needs raw counts)
-        
         counts = adatas.raw.X.copy() if adatas.raw is not None else adatas.X.copy()
         
         # Make sure matrix is in correct format
@@ -131,35 +126,38 @@ def quality_control(adatas, min_cells, min_genes, perMt, perRib, seed, scrublet,
         adatas.obs['predicted_doublet'] = predicted_doublets
 
         # Filter Doublets
-        adatas = adatas[~adatas.obs['predicted_doublet']].copy()
+        adatas = adatas[~adatas.obs['predicted_doublet']]
 
     # Filter w/ metrics
-    adatas = adatas[adatas.obs['pct_counts_mito'] <= perMt].copy() # Percentage Mitochondrial Gene
-    adatas = adatas[adatas.obs['pct_counts_RP'] <= perRib].copy() # Percentage Ribosomal
+    adatas = adatas[adatas.obs['pct_counts_mito'] <= perMt] # Percentage Mitochondrial Gene
+    adatas = adatas[adatas.obs['pct_counts_RP'] <= perRib] # Percentage Ribosomal
     
     filter_cells(adatas, min_genes=min_genes) # Filter cells below minimum gene count threshold
     filter_genes(adatas, min_counts=min_cells) # Filter genes below minimum count threshold
+    
+    return adatas
 
-    after_cells = adatas.obs_names.copy()
+def filteredtoCSV(adatasRaw, adatasFiltered, output_folder):
+    # Initial cell ids so that removed cells can be documented in Filtered_Cells.csv
+    initial_cells = adatasRaw.obs_names
+    after_cells = adatasFiltered.obs_names
 
     removed_cells = [cell for cell in initial_cells if cell not in after_cells]
     
-    adatas_filtered = adatasRaw[adatasRaw.obs_names.isin(removed_cells)].copy()
+    adatas_filtered = adatasRaw[adatasRaw.obs_names.isin(removed_cells)]
 
     df_removed = DataFrame()
-    df_removed['sample'] = adatas_filtered.obs['sample'].copy()
-    df_removed['cell id'] = adatas_filtered.obs['cell_id'].copy()
-    df_removed['gene counts'] = adatas_filtered.obs['total_counts'].copy()
-    df_removed['pct mito'] = adatas_filtered.obs['pct_counts_mito'].copy()
-    df_removed['pct ribo'] = adatas_filtered.obs['pct_counts_RP'].copy()
+    df_removed['sample'] = adatas_filtered.obs['sample']
+    df_removed['cell id'] = adatas_filtered.obs['cell_id']
+    df_removed['gene counts'] = adatas_filtered.obs['total_counts']
+    df_removed['pct mito'] = adatas_filtered.obs['pct_counts_mito']
+    df_removed['pct ribo'] = adatas_filtered.obs['pct_counts_RP']
 
     outfolder = join(output_folder, 'Filtered Cells Table')
 
     if not pathexists(outfolder):
         makedirs(outfolder)
     df_removed.to_csv(join(outfolder,f'Filtered Cells.csv'), index=False)
-    
-    return adatasRaw, adatas
 
 
 def normalization(adatas, boolHVG, nHVG, seed):
@@ -175,8 +173,6 @@ def normalization(adatas, boolHVG, nHVG, seed):
     Returns:
         obs: Normalized transcriptomic data.
     """
-    adatas.layers["counts_raw"] = adatas.X.copy() # Save raw count data
-
     normalize_total(adatas,target_sum=1) # Normalize to median total counts
     log1p(adatas) # Logarithmize data
     
@@ -184,8 +180,6 @@ def normalization(adatas, boolHVG, nHVG, seed):
         highly_variable_genes(adatas, n_top_genes=nHVG, batch_key="sample")
 
     scale(adatas, zero_center=False)
-
-    adatas.layers["counts_norm"] = adatas.X.copy() # Save normalized count data
 
     pca(adatas, random_state=seed) # Principle components analysis
 
@@ -255,19 +249,25 @@ def integration(adatas, npcs, nNeigh, intMeth, seed):
 
     umap(adatas, random_state=seed)
 
-    return adatas
-
 
 def cluster(adatas, res, seed):
     leiden(adatas, key_added="leiden", resolution=res, random_state=seed)
     leidenParts = [adatas.obs['leiden'], adatas.uns['leiden']]
     return leidenParts
 
-def silhouetteLeiden(adatas):
-    return silhouette_score(
-        adatas.obsm['X_pca'], 
-        adatas.obs['leiden']
-        )
+def silhouetteLeiden(adatas, leiden=None, column='leiden'):
+    if leiden is None:
+        return silhouette_score(
+            adatas.obsm['X_pca'], 
+            adatas.obs[column]
+            )
+            
+    else:
+        return silhouette_score(
+            adatas.obsm['X_pca'],
+            leiden
+            )
+            
 
 
 ##########

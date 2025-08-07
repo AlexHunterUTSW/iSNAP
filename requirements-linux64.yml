@@ -1,0 +1,23 @@
+name: iSNAP
+channels:
+  - pytorch
+  - conda-forge
+  - bioconda
+  - anaconda
+  - defaults
+dependencies:
+  - python=3.12
+  - numpy=1.26.4
+  - pytorch=2.2.2
+  - scanpy
+  - leidenalg
+  - harmonypy
+  - bbknn=1.6.0
+  - python-annoy
+  - adjusttext
+  - scrublet
+  - pyinstaller
+  - git
+  - ipykernel
+  - pyqt=6.7.1
+  - qt-material

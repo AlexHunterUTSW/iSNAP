@@ -1,11 +1,8 @@
 ###################
 # Import Packages #
 ###################
-print('- Importing os...')
-from os.path import (
-    join
-)
 print('- Importing PyQt...')
+from os.path import join
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import ( 
@@ -22,13 +19,12 @@ from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QSpacerItem,
-    QSizePolicy,
-    QTreeView
+    QSizePolicy
 )
 
 
 class SetModality(QWidget):
-    def __init__(self):
+    def __init__(self, application_path):
         super().__init__()
 
         # Initiate Layouts
@@ -37,8 +33,8 @@ class SetModality(QWidget):
         self.layoutDevMode = QHBoxLayout()
 
         # Create Widgets
-        icon = QPixmap('iSNAP_Icon.png')
-        resizedIcon = icon.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio)
+        icon = QPixmap(join(application_path,'iSNAP_Icon.png'))
+        resizedIcon = icon.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
         labelIcon = QLabel('iSNAP Icon')
         labelIcon.setPixmap(resizedIcon)
         labelWelcome = QLabel('Welcome to iSNAP!')
@@ -132,7 +128,7 @@ class FileFinder(QWidget):
         self.setLayout(self.layoutMain)
         
     def setPage(self, modality):
-        
+        self.modality = modality
         self.clearLayout(self.layoutMain)
         self.layoutMain.addWidget(self.labelIn)
         self.layoutMain.addLayout(self.layoutIn)
@@ -148,16 +144,31 @@ class FileFinder(QWidget):
                 child.widget().setParent(None)
 
     def add_folderIn(self):
-        fileDialog = FileDialog()
-        fileDialog.exec()
-        files = fileDialog.selectedFiles
-        try:
-            for folder in files:
-                if folder not in self.folderIn_paths and folder != "":
-                    self.folderIn_paths.append(folder)
-                    self.listIn.addItem(folder)
-        except:
-            pass
+        fileDialog = QFileDialog()
+
+        if self.modality == 'Single .h5ad file':
+            files, _ = fileDialog.getOpenFileNames(
+                None, 
+                "Select Multiple Files", 
+                "", 
+                " Anndata (*.h5ad);;All Files(*.*)"
+                )
+            try:
+                for folder in files:
+                    if folder not in self.folderIn_paths and folder != "":
+                        self.folderIn_paths.append(folder)
+                        self.listIn.addItem(folder)
+            except:
+                pass
+        else:
+            folder = fileDialog.getExistingDirectory(
+                None,
+                "Select a folder",
+                ""
+            )
+            if folder not in self.folderIn_paths and folder != "":
+                self.folderIn_paths.append(folder)
+                self.listIn.addItem(folder)
         
     def remove_folderIn(self):
         listItems=self.listIn.selectedItems()
@@ -168,7 +179,11 @@ class FileFinder(QWidget):
     
     def add_folderOut(self):
         fileDialog = QFileDialog()
-        folder = fileDialog.getExistingDirectory(self, "Select Folder", options=QFileDialog.Option.DontUseNativeDialog)
+        folder = fileDialog.getExistingDirectory(
+            None, 
+            "Select a Folder", 
+            ""
+            )
         self.folderOut_path = folder
         self.lineOut.setText(folder)
 
@@ -180,26 +195,3 @@ class FileFinder(QWidget):
             error_dialog.exec()
         else:
             self.close()
-
-
-class FileDialog(QFileDialog):
-    def __init__(self, *args):
-        QFileDialog.__init__(self, *args)
-        self.setOption(self.Option.DontUseNativeDialog, True)
-        self.setFileMode(self.FileMode.ExistingFiles)
-        self.setGeometry(100, 100, 1280, 720)
-        btns = self.findChildren(QPushButton)
-        self.openBtn = [x for x in btns if 'open' in str(x.text()).lower()][0]
-        self.openBtn.clicked.disconnect()
-        self.openBtn.clicked.connect(self.openClicked)
-        self.tree = self.findChild(QTreeView)
-        self.show()
-
-    def openClicked(self):
-        inds = self.tree.selectionModel().selectedIndexes()
-        files = []
-        for i in inds:
-            if i.column() == 0:
-                files.append(join(str(self.directory().absolutePath()),str(i.data())))
-        self.selectedFiles = files
-        self.close()

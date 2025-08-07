@@ -91,6 +91,9 @@ def read_data(input_paths, modality):
             dataset_name = basename(data_path)[:-5]
             print('Reading sample:', dataset_name)  
             adatas = read_h5ad(data_path)
+            if not 'sample' in adatas.obs.columns and 'batch' in adatas.obs.columns:
+                adatas.obs['sample'] = adatas.obs['batch']
+                adatas.obs.drop(columns = 'batch', inplace=True)
             if not 'cell_id' in adatas.obs.columns or not 'sample' in adatas.obs.columns:
                 adatas.obs_names = [f'{cell}_{dataset_name}' for cell in adatas.obs_names]
                 adatas.obs['cell_id'] = adatas.obs_names.to_series().apply(lambda x: x.split("_")[0]) # Cell ID
@@ -136,7 +139,6 @@ def save_adatas(adatas, output_folder, suffix=None):
     Returns:
         obs: Raw Transcriptomic Data
     """
-    # adatas.X = csr_matrix(adatas.X) # Convert count matrix to sparse matrix
     print('Saving anndata object...')
 
     outpath = join(output_folder,'Adatas')
@@ -145,11 +147,28 @@ def save_adatas(adatas, output_folder, suffix=None):
         makedirs(outpath)
 
     if suffix:
-        adatas.write(join(outpath, f'adatas {suffix}.h5ad')) # Save Xenium dataset
-        print(f'The anndata object was saved to your output folder as "adatas {suffix}.h5ad".')
+        if pathexists(join(outpath, f'adatas {suffix}.h5ad')):
+            i = 1
+            while pathexists(join(outpath, f'adatas {suffix}({i}).h5ad')):
+                i += 1
+            filename = f'adatas {suffix}({i}).h5ad'
+            adatas.write(join(outpath, filename))
+        else:
+            filename = f'adatas {suffix}.h5ad'
+            adatas.write(join(outpath, filename)) # Save Xenium dataset
+        print(f'The anndata object was saved to your output folder as "{filename}".')
     else:
-        adatas.write(join(outpath, "adatas.h5ad")) # Save Xenium dataset
-        print('The anndata object was saved to your output folder as "adatas.h5ad".')
+        if pathexists(join(outpath, f'adatas.h5ad')):
+            i = 1
+            while pathexists(join(outpath, f'adatas({i}).h5ad')):
+                i += 1
+            filename = f'adatas({i}).h5ad'
+            adatas.write(join(outpath, filename))
+        else:
+            filename = f'adatas.h5ad'
+            adatas.write(join(outpath, filename)) # Save Xenium dataset
+        print(f'The anndata object was saved to your output folder as "{filename}".')
+        
     
 
 #####################
